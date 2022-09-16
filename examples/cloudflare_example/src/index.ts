@@ -1,11 +1,11 @@
 import { Segment } from "@segment/edge-sdk-cloudflare";
-import type { Env } from "@segment/edge-sdk-cloudflare";
+import type { Env as SDKEnv } from "@segment/edge-sdk-cloudflare";
 
-declare global {
-  const SEGMENT_WRITE_KEY: string;
-  const PERSONAS_SPACE_ID: string;
-  const PERSONAS_TOKEN: string;
-}
+type Env = SDKEnv & {
+  SEGMENT_WRITE_KEY: string;
+  PERSONAS_SPACE_ID: string;
+  PERSONAS_TOKEN: string;
+};
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
