@@ -1,7 +1,7 @@
 import ElementHandler from "./parser";
 import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
-import { Router } from "worktop";
+import { Router } from "./router";
 
 import { Env } from "./env";
 
@@ -13,6 +13,7 @@ export class Segment {
   collectEdgeData: boolean;
   personasSpaceId: string | undefined;
   personasToken: string | undefined;
+  router: Router;
 
   constructor(
     writeKey: string,
@@ -26,6 +27,7 @@ export class Segment {
     this.collectEdgeData = collectEdgeData;
     this.personasSpaceId = personasSpaceId;
     this.personasToken = personasToken;
+    this.router = new Router(this.basePath);
   }
 
   private async getEdgeFunctions(env: Env) {
@@ -63,25 +65,6 @@ export class Segment {
     });
 
     return [respCookie, anonymousId];
-  }
-
-  determineURLType(url: string) {
-    if (url.startsWith(`/${this.basePath}/v1/projects`)) {
-      return "settings";
-    } else if (
-      url.startsWith(`/${this.basePath}/analytics-next`) ||
-      url.startsWith(`/${this.basePath}/next-integrations`)
-    ) {
-      return "bundles";
-    } else if (url.startsWith(`/${this.basePath}/evs`)) {
-      return "tapi";
-    } else if (url.startsWith(`/${this.basePath}/sf`)) {
-      return "source-function";
-    } else if (url.startsWith(`/${this.basePath}/personas`)) {
-      return "personas";
-    } else if (url.startsWith(`/${this.basePath}`)) {
-      return "ajs";
-    } else return "root";
   }
 
   async handleAJS(request: Request) {
@@ -269,12 +252,14 @@ export class Segment {
   async handle(request: Request, env: Env) {
     const url = new URL(request.url);
     const path = url.pathname;
-    switch (this.determineURLType(path)) {
+    const { route } = this.router.getRoute(path);
+    switch (route) {
       case "ajs":
         return this.handleAJS(request);
       case "settings":
         return this.handleSettings(request);
       case "bundles":
+      case "destinations":
         return this.handleBundles(request);
       case "tapi":
         return this.handleTAPI(request, env);
