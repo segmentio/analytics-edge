@@ -22,14 +22,11 @@ export default class ElementHandler {
   }
 
   element(element: Element) {
-    // An incoming element, such as `div`
-    console.log("parsing:", this.traits);
-
     const snip = snippet
       .max({
         host: `${this.host}/${this.basePath}`,
         apiKey: this.writeKey,
-        ajsPath: `/${nanoid()}`,
+        ajsPath: `/ajs/${nanoid()}`,
         useHostForBundles: true,
         page: {},
       })
