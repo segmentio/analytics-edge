@@ -1,0 +1,4 @@
+{
+	"extends": "@segment/tsconfig-edge-sdk/cfworker.json"
+}
+  
