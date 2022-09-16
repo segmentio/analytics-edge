@@ -6,5 +6,5 @@
   "linked": [],
   "access": "public",
   "updateInternalDependencies": "patch",
-  "ignore": ["@segment/cloudflare_example"]
+  "ignore": ["@segment/cloudflare_example", "eslint-config-edge-sdk"]
 }
