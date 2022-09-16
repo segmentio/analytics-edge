@@ -13,13 +13,20 @@
     "build": "tsup src/index.ts --format esm,cjs --dts --external react",
     "dev": "tsup src/index.ts --format esm,cjs --watch --dts --external react",
     "lint": "TIMING=1 eslint src/**/*.ts* --fix",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "jest-presets/jest/node"
   },
   "devDependencies": {
-    "@segment/tsconfig-edge-sdk": "*",
     "@cloudflare/workers-types": "^3.16.0",
+    "@segment/tsconfig-edge-sdk": "*",
+    "@types/jest": "^29.0.3",
     "eslint": "^7.32.0",
     "eslint-config-edge-sdk": "*",
+    "jest": "^29.0.3",
+    "jest-presets": "*",
     "tsup": "^5.10.1",
     "typescript": "^4.5.3"
   },
