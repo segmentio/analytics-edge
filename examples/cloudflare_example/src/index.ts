@@ -1,9 +1,15 @@
 import { Segment } from "@segment/edge-sdk-cloudflare";
 import type { Env } from "@segment/edge-sdk-cloudflare";
 
-const writeKey = "<SEGMENT_WRITE_KEY>";
-const personasSpaceId = "<PERSONAS_SPACE_ID>";
-const personasToken = "<PERSONAS_TOKEN>";
+declare global {
+  const SEGMENT_WRITE_KEY: string;
+  const PERSONAS_SPACE_ID: string;
+  const PERSONAS_TOKEN: string;
+}
+
+const writeKey = SEGMENT_WRITE_KEY;
+const personasSpaceId = PERSONAS_SPACE_ID;
+const personasToken = PERSONAS_TOKEN;
 
 const segment = new Segment(
   writeKey,
