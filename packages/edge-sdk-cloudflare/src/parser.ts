@@ -32,8 +32,13 @@ export default class ElementHandler {
       })
       .replace(
         `analytics.load("${this.writeKey}");`,
-        `analytics.load("${this.writeKey}", {integrations: {
-        "Segment.io": {apiHost: "${this.host}/${this.basePath}/evs"}}});analytics.setAnonymousId("${this.anonymousId}");analytics.identify(${this.traits})`
+        `analytics.load("${this.writeKey}", {
+          integrations: {
+            "Segment.io": {apiHost: "${this.host}/${this.basePath}/evs"}
+          }
+        });
+        analytics.setAnonymousId("${this.anonymousId}");
+        analytics.identify(${this.traits})`
       );
     element.append(`<script>${snip}</script>`, { html: true });
   }
