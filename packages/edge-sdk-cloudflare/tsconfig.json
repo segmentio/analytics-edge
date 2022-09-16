@@ -1,0 +1,5 @@
+{
+  "extends": "@segment/tsconfig-edge-sdk/cfworker.json",
+  "include": ["."],
+  "exclude": ["dist", "build", "node_modules"],
+}
