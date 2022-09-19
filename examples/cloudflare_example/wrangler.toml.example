@@ -5,9 +5,9 @@ name = "cloudflare_example"
 workers_dev = true
 
 kv_namespaces = [
-  {binding = "Profiles", id = "..."},
-  {binding = "EdgeFunctions", id = "..."},
-  {binding = "SourceFunctions", id = "..."},
+  {binding = "Profiles", id = "...", preview_id = "..."},
+  {binding = "EdgeFunctions", id = "...", preview_id = "..."},
+  {binding = "SourceFunctions", id = "...",  preview_id = "..."},
 ]
 
 [[unsafe.bindings]]
