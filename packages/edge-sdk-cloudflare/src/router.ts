@@ -20,7 +20,7 @@ function generateRouteMatcher(basePath: string): [string, RegExp][] {
   ].map((i) => [
     i[0],
     RegExp(
-      `^${basePath}${i[1]
+      `^/${basePath}${i[1]
         .replace(/(\/?)\*/g, "($1.*)?") // trailing wildcard
         .replace(/\/$/, "") // remove trailing slash
         .replace(/:(\w+)(\?)?(\.)?/g, "$2(?<$1>[^/]+)$2$3") // named params

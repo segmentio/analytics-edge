@@ -4,7 +4,7 @@ describe("router", () => {
   it("Proxy settings", () => {
     const router = new Router("seg");
     expect(router).toBeDefined();
-    expect(router.getRoute("seg/v1/projects/abc/settings")).toEqual({
+    expect(router.getRoute("/seg/v1/projects/abc/settings")).toEqual({
       route: "settings",
       params: {
         writeKey: "abc",
@@ -17,7 +17,7 @@ describe("router", () => {
     expect(router).toBeDefined();
     expect(
       router.getRoute(
-        "seg/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"
+        "/seg/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"
       )
     ).toEqual({
       route: "bundles",
@@ -31,7 +31,7 @@ describe("router", () => {
     const router = new Router("seg");
     expect(router).toBeDefined();
     expect(
-      router.getRoute("seg/next-integrations/actions/braze/ha$hed.js")
+      router.getRoute("/seg/next-integrations/actions/braze/ha$hed.js")
     ).toEqual({
       route: "destinations",
     });
@@ -40,7 +40,7 @@ describe("router", () => {
   it("Proxy tracking API", () => {
     const router = new Router("seg");
     expect(router).toBeDefined();
-    expect(router.getRoute("seg/evs/t")).toEqual({
+    expect(router.getRoute("/seg/evs/t")).toEqual({
       route: "tapi",
       params: {
         method: "t",
@@ -51,7 +51,7 @@ describe("router", () => {
   it("Proxy source functions", () => {
     const router = new Router("seg");
     expect(router).toBeDefined();
-    expect(router.getRoute("seg/sf/mySuperFancyFunction")).toEqual({
+    expect(router.getRoute("/seg/sf/mySuperFancyFunction")).toEqual({
       route: "source-function",
       params: {
         function: "mySuperFancyFunction",
@@ -62,13 +62,13 @@ describe("router", () => {
   it("Proxy personas", () => {
     const router = new Router("seg");
     expect(router).toBeDefined();
-    expect(router.getRoute("seg/personas")).toEqual({
+    expect(router.getRoute("/seg/personas")).toEqual({
       route: "personas",
     });
   });
 
   it("Proxy other routes to root", () => {
-    const router = new Router("seg");
+    const router = new Router("/seg");
     expect(router).toBeDefined();
     expect(router.getRoute("index.html")).toEqual({
       route: "root",
@@ -84,10 +84,10 @@ describe("router", () => {
   it("Proxy AJS", () => {
     const router = new Router("seg");
     expect(router).toBeDefined();
-    expect(router.getRoute("seg/ajs/123ddd")).toEqual({
+    expect(router.getRoute("/seg/ajs/r0tpUjybtJJxOT82lV62a")).toEqual({
       route: "ajs",
       params: {
-        hash: "123ddd",
+        hash: "r0tpUjybtJJxOT82lV62a",
       },
     });
   });
