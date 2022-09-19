@@ -1,7 +1,7 @@
 import snippet from "@segment/snippet";
 import { nanoid } from "nanoid";
 
-export default class ElementHandler {
+class ElementHandler {
   host: string;
   writeKey: string;
   basePath: string;
@@ -42,4 +42,26 @@ export default class ElementHandler {
       );
     element.append(`<script>${snip}</script>`, { html: true });
   }
+}
+
+export default function enrichWithAJS(
+  response: Response,
+  host: string,
+  writeKey: string,
+  basePath: string,
+  anonymousId: string,
+  traits: any
+): Response {
+  return new HTMLRewriter()
+    .on(
+      "head",
+      new ElementHandler(
+        host,
+        writeKey,
+        basePath,
+        anonymousId,
+        JSON.stringify(traits)
+      )
+    )
+    .transform(response);
 }

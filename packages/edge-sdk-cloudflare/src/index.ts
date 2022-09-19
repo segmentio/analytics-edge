@@ -1,2 +1,2 @@
 export { Segment } from "./segment";
-export type { Env } from "./env";
+export type { Env } from "./types";

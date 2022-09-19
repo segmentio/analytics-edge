@@ -2,8 +2,11 @@ import ElementHandler from "./parser";
 import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
-import { Env } from "./env";
+import { Env } from "./types";
 import { enrichResponseWithCookie, getCookie } from "./cookies";
+import enrichWithAJS from "./parser";
+import { extractProfile, handlePersonasWebhook } from "./personas";
+import { handleAJS, handleBundles, handleSettings } from "./assetsProxy";
 
 const baseSegment = "https://cdn.segment.com";
 
@@ -38,62 +41,6 @@ export class Segment {
     return edgeFunctions.keys
       .map((key: { name: string }) => key.name)
       .map((key: string) => key.replace(`${this.writeKey}-`, ""));
-  }
-
-  async handleAJS(request: Request) {
-    const url = `${baseSegment}/analytics.js/v1/${this.writeKey}/analytics.min.js`;
-    const resp = await fetch(url);
-    return resp;
-  }
-
-  async handleSettings(request: Request) {
-    const url = `${baseSegment}/v1/projects/${this.writeKey}/settings`;
-    const resp = await fetch(url);
-    return resp;
-  }
-
-  async handleBundles(request: Request) {
-    const url = new URL(request.url);
-    const path = url.pathname.replace(`/${this.basePath}/`, "/");
-    const target = `${baseSegment}${path}`;
-    const resp = await fetch(target);
-    return resp;
-  }
-
-  async handlePersonas(request: Request, env: Env) {
-    let event: { [key: string]: any } = await request.json();
-
-    if (event.type !== "identify") {
-      return new Response("", { status: 200 });
-    }
-
-    const {
-      userId,
-      traits,
-      context: { personas: personas },
-    } = event;
-
-    const profile_index = `${userId}`;
-
-    const rawProfileData = await env.Profiles.get(profile_index);
-    const profileData = rawProfileData ? JSON.parse(rawProfileData) : {};
-
-    delete traits.user_id;
-    const updatedProfile =
-      personas.computation_class === "audience"
-        ? {
-            ...profileData,
-            audiences: { ...(profileData.audiences || {}), ...traits },
-          }
-        : {
-            ...profileData,
-            traits: { ...(profileData.traits || {}), ...traits },
-          };
-
-    await env.Profiles.put(profile_index, JSON.stringify(updatedProfile));
-    return new Response(`${personas.computation_class} updated`, {
-      status: 200,
-    });
   }
 
   async handleTAPI(request: Request, env: Env) {
@@ -140,47 +87,6 @@ export class Segment {
     return resp;
   }
 
-  async extractProfile(
-    request: Request,
-    env: Env
-  ): Promise<{ [key: string]: any }> {
-    const anonymousId = getCookie(request, "ajs_anonymous_id");
-    const userId = getCookie(request, "ajs_user_id");
-
-    const profile_index = userId
-      ? `user_id:${userId}`
-      : `anonymous_id:${anonymousId}`;
-
-    const profileData = await env.Profiles.get(profile_index);
-    let profileObject = {};
-
-    if (!profileData) {
-      if (this.personasToken && this.personasSpaceId) {
-        const data = await fetch(
-          `https://profiles.segment.com/v1/spaces/${this.personasSpaceId}/collections/users/profiles/${profile_index}/traits`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: "Basic " + btoa(`${this.personasToken}:`),
-            },
-          }
-        );
-
-        if (data.status === 200) {
-          profileObject = await data.json();
-          await env.Profiles.put(profile_index, JSON.stringify(profileObject), {
-            expirationTtl: 120,
-          });
-          console.log(`reading prfile from API ${profile_index}`);
-        }
-      }
-    } else {
-      profileObject = JSON.parse(profileData);
-      console.log(`reading from cache ${profile_index}`);
-    }
-    return profileObject;
-  }
-
   async handleSourceFunction(request: Request, env: Env) {
     const url = new URL(request.url);
     const parts = url.pathname.split("/");
@@ -198,9 +104,18 @@ export class Segment {
     const host = request.headers.get("host") || ""; // can this be null?
     const anonymousId = getCookie(request, "ajs_anonymous_id") || nanoid();
 
-    const profileObject = await this.extractProfile(request, env);
+    const profileObject = await extractProfile(
+      request,
+      env.Profiles,
+      {
+        userId: getCookie(request, "ajs_user_id"),
+        anonymousId,
+      },
+      this.personasSpaceId,
+      this.personasToken
+    );
+
     const traits = profileObject?.traits;
-    console.log("traits:", traits);
 
     let resp = await fetch(request);
 
@@ -211,18 +126,14 @@ export class Segment {
       host || undefined
     );
 
-    return new HTMLRewriter()
-      .on(
-        "head",
-        new ElementHandler(
-          host,
-          this.writeKey,
-          this.basePath,
-          anonymousId,
-          JSON.stringify(traits)
-        )
-      )
-      .transform(resp);
+    return enrichWithAJS(
+      resp,
+      host,
+      this.writeKey,
+      this.basePath,
+      anonymousId,
+      traits
+    );
   }
 
   async handle(request: Request, env: Env) {
@@ -231,18 +142,18 @@ export class Segment {
     const { route } = this.router.getRoute(path);
     switch (route) {
       case "ajs":
-        return this.handleAJS(request);
+        return handleAJS(request, this.writeKey);
       case "settings":
-        return this.handleSettings(request);
+        return handleSettings(request, this.writeKey);
       case "bundles":
       case "destinations":
-        return this.handleBundles(request);
+        return handleBundles(request, this.basePath);
       case "tapi":
         return this.handleTAPI(request, env);
       case "source-function":
         return this.handleSourceFunction(request, env);
       case "personas":
-        return this.handlePersonas(request, env);
+        return handlePersonasWebhook(request, env);
       default:
         return this.handleRoot(request, env);
     }
