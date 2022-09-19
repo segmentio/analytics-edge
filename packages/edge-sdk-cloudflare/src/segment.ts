@@ -2,8 +2,8 @@ import ElementHandler from "./parser";
 import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
-
 import { Env } from "./env";
+import { enrichResponseWithCookie, getCookie } from "./cookies";
 
 const baseSegment = "https://cdn.segment.com";
 
@@ -38,33 +38,6 @@ export class Segment {
     return edgeFunctions.keys
       .map((key: { name: string }) => key.name)
       .map((key: string) => key.replace(`${this.writeKey}-`, ""));
-  }
-
-  private addCookie(response: Response, cookie: string) {
-    const newResponse = new Response(response.body, response);
-
-    newResponse.headers.set("set-cookie", cookie);
-    return newResponse;
-  }
-
-  private getAnonymousIdCookie(request: Request) {
-    const cookie = parse(request.headers.get("cookie") || "");
-    let anonymousId;
-
-    if (cookie["ajs_anonymous_id"]) {
-      anonymousId = cookie["ajs_anonymous_id"];
-    } else {
-      anonymousId = nanoid();
-    }
-
-    const respCookie = stringify("ajs_anonymous_id", anonymousId, {
-      httponly: true,
-      path: "/",
-      maxage: 31536000,
-      domain: `.${request.headers.get("host")}` || undefined, // todo: better logic for this
-    });
-
-    return [respCookie, anonymousId];
   }
 
   async handleAJS(request: Request) {
@@ -130,7 +103,6 @@ export class Segment {
     let body: { [key: string]: any } = await request.json();
 
     const edgeFunctions = await this.getEdgeFunctions(env);
-    console.log(edgeFunctions);
 
     for (const func of edgeFunctions) {
       let user_worker = env.dispatcher.get(func);
@@ -172,9 +144,8 @@ export class Segment {
     request: Request,
     env: Env
   ): Promise<{ [key: string]: any }> {
-    const [anonymousIdCookie, anonymousId] = this.getAnonymousIdCookie(request);
-
-    const userId = parse(request.headers.get("cookie") || "")["ajs_user_id"];
+    const anonymousId = getCookie(request, "ajs_anonymous_id");
+    const userId = getCookie(request, "ajs_user_id");
 
     const profile_index = userId
       ? `user_id:${userId}`
@@ -225,7 +196,7 @@ export class Segment {
 
   async handleRoot(request: Request, env: Env) {
     const host = request.headers.get("host") || ""; // can this be null?
-    const [anonymousIdCookie, anonymousId] = this.getAnonymousIdCookie(request);
+    const anonymousId = getCookie(request, "ajs_anonymous_id") || nanoid();
 
     const profileObject = await this.extractProfile(request, env);
     const traits = profileObject?.traits;
@@ -233,7 +204,12 @@ export class Segment {
 
     let resp = await fetch(request);
 
-    resp = this.addCookie(resp, anonymousIdCookie);
+    resp = enrichResponseWithCookie(
+      resp,
+      "ajs_anonymous_id",
+      anonymousId,
+      host || undefined
+    );
 
     return new HTMLRewriter()
       .on(
