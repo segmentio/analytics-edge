@@ -68,6 +68,7 @@ export class Segment {
       handleClientSideTraits,
       enrichWithAJS(host, this.writeKey, this.basePath)
     );
+    this.router.register("bypass", handleOrigin);
     const [_, resp, __] = await this.router.handle(request);
 
     return resp;

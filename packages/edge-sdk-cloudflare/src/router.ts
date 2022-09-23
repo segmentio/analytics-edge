@@ -10,20 +10,25 @@ interface Route {
     | undefined;
 }
 
-function generateRouteMatcher(basePath: string): [string, RegExp][] {
-  return [
-    ["settings", `/v1/projects/:writeKey/settings`],
-    ["bundles", `/analytics-next/bundles/:bundleName`],
-    ["destinations", `/next-integrations/*`],
-    ["tapi", `/evs/:method`],
-    ["source-function", `/sf/:function`],
-    ["personas", `/personas`],
-    ["ajs", `/ajs/:hash`],
-    ["root", `/*`],
-  ].map((i) => [
+type Method = "get" | "post" | "put" | "delete" | "patch";
+
+function generateRouteMatcher(basePath: string): [Method, string, RegExp][] {
+  const rawRoutes: [Method, string, string][] = [
+    ["get", "settings", `${basePath}/v1/projects/:writeKey/settings`],
+    ["get", "bundles", `${basePath}/analytics-next/bundles/:bundleName`],
+    ["get", "destinations", `${basePath}/next-integrations/*`],
+    ["post", "tapi", `${basePath}/evs/:method`],
+    ["get", "source-function", `${basePath}/sf/:function`],
+    ["post", "personas", `${basePath}/personas`],
+    ["get", "ajs", `${basePath}/ajs/:hash`],
+    ["get", "root", `*`],
+  ];
+
+  return rawRoutes.map((i) => [
     i[0],
+    i[1],
     RegExp(
-      `^/${basePath}${i[1]
+      `^/${i[2]
         .replace(/(\/?)\*/g, "($1.*)?") // trailing wildcard
         .replace(/\/$/, "") // remove trailing slash
         .replace(/:(\w+)(\?)?(\.)?/g, "$2(?<$1>[^/]+)$2$3") // named params
@@ -35,7 +40,7 @@ function generateRouteMatcher(basePath: string): [string, RegExp][] {
 
 export class Router {
   basePath: string;
-  routes: [string, RegExp][];
+  routes: [Method, string, RegExp][];
   handlers: {
     [key: string]: HandlerFunction[];
   };
@@ -50,15 +55,21 @@ export class Router {
     this.instance = instance;
   }
 
-  getRoute(path: string): Route {
-    for (const [route, matcher] of this.routes) {
+  getRoute(path: string, method: string): Route {
+    for (const [httpMethod, route, matcher] of this.routes) {
+      console.log("matching", httpMethod, route, matcher, path, method);
+      if (httpMethod !== method) {
+        continue;
+      }
+
       const match = matcher.exec(path);
       if (match) {
         const params = match.groups;
         return { route, params };
       }
     }
-    return { route: "root", params: undefined };
+
+    return { route: "bypass", params: undefined };
   }
 
   register(route: string, ...handlers: HandlerFunction[]) {
@@ -72,9 +83,10 @@ export class Router {
     request: Request
   ): Promise<[Request, Response | undefined, any]> {
     const url = new URL(request.url);
+    const method = request.method.toLowerCase() as Method;
     const originalRequest = request;
     const path = url.pathname;
-    const { route, params } = this.getRoute(path);
+    const { route, params } = this.getRoute(path, method);
     const handlers = this.handlers[route];
     let response: Response | undefined = undefined;
     let context: RouterContext = {
