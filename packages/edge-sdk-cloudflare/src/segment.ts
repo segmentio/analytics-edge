@@ -5,12 +5,17 @@ import { Router } from "./router";
 import { Env } from "./types";
 import { enrichResponseWithCookie, getCookie } from "./cookies";
 import enrichWithAJS from "./parser";
-import { extractProfile, handlePersonasWebhook } from "./personas";
+import {
+  extractProfile,
+  handleABTests,
+  handleClientSideTraits,
+  handlePersonasWebhook,
+  handleProfile,
+} from "./personas";
 import { handleAJS, handleBundles, handleSettings } from "./assetsProxy";
-import { handleTAPI } from "./tapi";
+import { enrichEdgeTraits, handleEdgeFunctions, handleTAPI } from "./tapi";
 import { handleSourceFunction } from "./sourceFunction";
-
-const baseSegment = "https://cdn.segment.com";
+import { handleOrigin } from "./origin";
 
 export class Segment {
   writeKey: string;
@@ -19,11 +24,15 @@ export class Segment {
   personasSpaceId: string | undefined;
   personasToken: string | undefined;
   router: Router;
+  baseSegment: string;
+  experiments: any[];
+  traitsFunc: (traits: any) => void;
 
   constructor(
     writeKey: string,
     basePath: string = "segment",
     collectEdgeData = true,
+    env: Env,
     personasSpaceId?: string,
     personasToken?: string
   ) {
@@ -32,65 +41,53 @@ export class Segment {
     this.collectEdgeData = collectEdgeData;
     this.personasSpaceId = personasSpaceId;
     this.personasToken = personasToken;
-    this.router = new Router(this.basePath);
+    this.router = new Router(this.basePath, env, this);
+    this.baseSegment = "https://cdn.segment.com";
+    this.experiments = [];
+    this.traitsFunc = (traits: any) => {};
   }
 
-  async handleRoot(request: Request, env: Env) {
+  async handleEvent(request: Request, env: Env) {
     const host = request.headers.get("host") || ""; // can this be null?
-    const anonymousId = getCookie(request, "ajs_anonymous_id") || nanoid();
 
-    const profileObject = await extractProfile(
-      request,
-      env.Profiles,
-      {
-        userId: getCookie(request, "ajs_user_id"),
-        anonymousId,
-      },
-      this.personasSpaceId,
-      this.personasToken
+    this.router.register(
+      "ajs",
+      handleAJS,
+      enrichResponseWithCookie("ajs_anonymous_id", host || undefined)
     );
-
-    const traits = profileObject?.traits;
-
-    let resp = await fetch(request);
-
-    resp = enrichResponseWithCookie(
-      resp,
-      "ajs_anonymous_id",
-      anonymousId,
-      host || undefined
+    this.router.register("settings", handleSettings);
+    this.router.register("bundles", handleBundles);
+    this.router.register("destinations", handleBundles);
+    this.router.register("tapi", enrichEdgeTraits, handleTAPI);
+    this.router.register(
+      "root",
+      handleProfile,
+      handleABTests,
+      handleOrigin,
+      enrichResponseWithCookie("ajs_anonymous_id", host || undefined),
+      handleClientSideTraits,
+      enrichWithAJS(host, this.writeKey, this.basePath)
     );
+    const [_, resp, __] = await this.router.handle(request);
 
-    return enrichWithAJS(
-      resp,
-      host,
-      this.writeKey,
-      this.basePath,
-      anonymousId,
-      traits
-    );
+    return resp;
   }
 
-  async handle(request: Request, env: Env) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const { route } = this.router.getRoute(path);
-    switch (route) {
-      case "ajs":
-        return handleAJS(request, this.writeKey);
-      case "settings":
-        return handleSettings(request, this.writeKey);
-      case "bundles":
-      case "destinations":
-        return handleBundles(request, this.basePath);
-      case "tapi":
-        return handleTAPI(request, env, this.writeKey);
-      case "source-function":
-        return handleSourceFunction(request, env);
-      case "personas":
-        return handlePersonasWebhook(request, env);
-      default:
-        return this.handleRoot(request, env);
-    }
+  async registerABTesting(
+    originalRoute: string,
+    positiveRoute: string,
+    negativeRoute: string,
+    evaluationFunction: (traits: any) => boolean | undefined
+  ) {
+    this.experiments.push({
+      originalRoute,
+      positiveRoute,
+      negativeRoute,
+      evaluationFunction,
+    });
+  }
+
+  async clientSideTraits(func: (traits: any) => void) {
+    this.traitsFunc = func;
   }
 }

@@ -1,3 +1,6 @@
+import { Segment } from "./segment";
+import { RouterContext, Env, HandlerFunction } from "./types";
+
 interface Route {
   route: string;
   params:
@@ -33,11 +36,18 @@ function generateRouteMatcher(basePath: string): [string, RegExp][] {
 export class Router {
   basePath: string;
   routes: [string, RegExp][];
+  handlers: {
+    [key: string]: HandlerFunction[];
+  };
+  env: Env;
+  instance: Segment;
 
-  constructor(basePath: string) {
+  constructor(basePath: string, env: Env, instance: Segment) {
     this.basePath = basePath;
     this.routes = generateRouteMatcher(basePath);
-    console.log(this.routes);
+    this.handlers = {};
+    this.env = env;
+    this.instance = instance;
   }
 
   getRoute(path: string): Route {
@@ -49,5 +59,36 @@ export class Router {
       }
     }
     return { route: "root", params: undefined };
+  }
+
+  register(route: string, ...handlers: HandlerFunction[]) {
+    if (!this.handlers[route]) {
+      this.handlers[route] = [];
+    }
+    this.handlers[route].push(...handlers);
+  }
+
+  async handle(
+    request: Request
+  ): Promise<[Request, Response | undefined, any]> {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const { route, params } = this.getRoute(path);
+    const handlers = this.handlers[route];
+    let response: Response | undefined = undefined;
+    let context: RouterContext = {
+      instance: this.instance,
+      env: this.env,
+    };
+
+    if (!handlers) {
+      return Promise.reject("No handlers for route");
+    }
+
+    for (const handler of handlers) {
+      [request, response, context] = await handler(request, response, context);
+    }
+
+    return [request, response, context];
   }
 }

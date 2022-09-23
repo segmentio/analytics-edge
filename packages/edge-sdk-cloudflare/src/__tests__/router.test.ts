@@ -1,8 +1,10 @@
 import { Router } from "../router";
+import { Segment } from "../segment";
+import { Env } from "../types";
 
 describe("router", () => {
   it("Proxy settings", () => {
-    const router = new Router("seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(router.getRoute("/seg/v1/projects/abc/settings")).toEqual({
       route: "settings",
@@ -13,7 +15,7 @@ describe("router", () => {
   });
 
   it("Proxy bundles and grabs the bundle name", () => {
-    const router = new Router("seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(
       router.getRoute(
@@ -28,7 +30,7 @@ describe("router", () => {
   });
 
   it("Proxy destinations", () => {
-    const router = new Router("seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(
       router.getRoute("/seg/next-integrations/actions/braze/ha$hed.js")
@@ -38,7 +40,7 @@ describe("router", () => {
   });
 
   it("Proxy tracking API", () => {
-    const router = new Router("seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(router.getRoute("/seg/evs/t")).toEqual({
       route: "tapi",
@@ -49,7 +51,7 @@ describe("router", () => {
   });
 
   it("Proxy source functions", () => {
-    const router = new Router("seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(router.getRoute("/seg/sf/mySuperFancyFunction")).toEqual({
       route: "source-function",
@@ -60,7 +62,7 @@ describe("router", () => {
   });
 
   it("Proxy personas", () => {
-    const router = new Router("seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(router.getRoute("/seg/personas")).toEqual({
       route: "personas",
@@ -68,7 +70,7 @@ describe("router", () => {
   });
 
   it("Proxy other routes to root", () => {
-    const router = new Router("/seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(router.getRoute("index.html")).toEqual({
       route: "root",
@@ -82,7 +84,7 @@ describe("router", () => {
   });
 
   it("Proxy AJS", () => {
-    const router = new Router("seg");
+    const router = new Router("seg", {} as Env, {} as Segment);
     expect(router).toBeDefined();
     expect(router.getRoute("/seg/ajs/r0tpUjybtJJxOT82lV62a")).toEqual({
       route: "ajs",
@@ -90,5 +92,29 @@ describe("router", () => {
         hash: "r0tpUjybtJJxOT82lV62a",
       },
     });
+  });
+
+  it("testing handlers", async () => {
+    const router = new Router("seg", {} as Env, {} as Segment);
+    const request = {
+      method: "GET",
+      url: "https://www.segment.com/seg/ajs/r0tpUjybtJJxOT82lV62a",
+    } as any;
+
+    expect(router).toBeDefined();
+    const handlerOne = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([{}, {}]));
+    const handlerTwo = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([request, {}]));
+
+    router.register("ajs", [handlerOne, handlerTwo]);
+    await router.handle(request);
+    expect(handlerOne).toHaveBeenCalledWith(request, undefined, {
+      env: {},
+      instance: {},
+    });
+    expect(handlerTwo).toHaveBeenCalledWith(request, {}, {});
   });
 });

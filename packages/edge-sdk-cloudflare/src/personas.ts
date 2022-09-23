@@ -1,4 +1,5 @@
-import { Env, Storage, UserIdentity } from "./types";
+import { getCookie } from "./cookies";
+import { Env, HandlerFunction, Storage, UserIdentity } from "./types";
 
 export async function extractProfile(
   request: Request,
@@ -8,7 +9,13 @@ export async function extractProfile(
   personasToken?: string
 ): Promise<{ [key: string]: any }> {
   const { anonymousId, userId } = userIdentity;
-
+  console.log(
+    "extracting profile",
+    anonymousId,
+    userId,
+    personasSpaceId,
+    profilesStore
+  );
   const profile_index = userId
     ? `user_id:${userId}`
     : `anonymous_id:${anonymousId}`;
@@ -17,6 +24,7 @@ export async function extractProfile(
   let profileObject = {};
 
   if (!profileData) {
+    console.log("no profile data found");
     if (personasToken && personasSpaceId) {
       const data = await fetch(
         `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits`,
@@ -27,7 +35,7 @@ export async function extractProfile(
           },
         }
       );
-
+      console.log("got personas data", data);
       if (data.status === 200) {
         profileObject = await data.json();
         await profilesStore.put(profile_index, JSON.stringify(profileObject), {
@@ -78,3 +86,79 @@ export async function handlePersonasWebhook(request: Request, env: Env) {
     status: 200,
   });
 }
+
+export const handleProfile: HandlerFunction = async function (
+  request,
+  response,
+  context
+) {
+  const profileObject = await extractProfile(
+    request,
+    context.env.Profiles,
+    {
+      userId: getCookie(request, "ajs_user_id"),
+      anonymousId: getCookie(request, "ajs_anonymous_id"),
+    },
+    context.instance.personasSpaceId,
+    context.instance.personasToken
+  );
+
+  const traits = profileObject?.traits;
+
+  return [request, response, { ...context, traits }];
+};
+
+export const handleABTests: HandlerFunction = async function (
+  request,
+  response,
+  context
+) {
+  const url = new URL(request.url);
+  for (const {
+    originalRoute,
+    positiveRoute,
+    negativeRoute,
+    evaluationFunction,
+  } of context.instance.experiments) {
+    console.log("checking experiment", originalRoute);
+    if (url.pathname === originalRoute) {
+      const testResult = evaluationFunction(context.traits);
+      console.log("experiment test result", testResult);
+      if (testResult === true) {
+        url.pathname = positiveRoute;
+        return [
+          new Request(url, {
+            method: request.method,
+            headers: request.headers,
+            body: request.body,
+          }),
+          response,
+          context,
+        ];
+      } else if (testResult === false) {
+        url.pathname = negativeRoute;
+
+        return [
+          new Request(url, {
+            method: request.method,
+            headers: request.headers,
+            body: request.body,
+          }),
+          response,
+          context,
+        ];
+      }
+    }
+  }
+  return [request, response, context];
+};
+
+export const handleClientSideTraits: HandlerFunction = async function (
+  request,
+  response,
+  context
+) {
+  console.log("handling client side traits");
+  const clientSideTraits = context.instance.traitsFunc(context.traits);
+  return [request, response, { ...context, clientSideTraits }];
+};

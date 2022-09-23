@@ -1,13 +1,14 @@
-import { Env } from "./types";
+import { Env, HandlerFunction } from "./types";
 
-export async function handleTAPI(request: Request, env: Env, writeKey: string) {
-  const url = new URL(request.url);
-  const parts = url.pathname.split("/");
-  const method = parts.pop();
+export const handleEdgeFunctions: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
   let body: { [key: string]: any } = await request.json();
-
+  const writeKey = context.instance.writeKey;
   // getting edge functions
-  const edgeFunctions = await env.EdgeFunctions.list({
+  const edgeFunctions = await context.env.EdgeFunctions.list({
     prefix: writeKey,
   });
 
@@ -16,7 +17,7 @@ export async function handleTAPI(request: Request, env: Env, writeKey: string) {
     .map((key: string) => key.replace(`${writeKey}-`, ""));
 
   for (const func of edgePointers) {
-    let user_worker = env.dispatcher.get(func);
+    let user_worker = context.env.dispatcher.get(func);
     console.log("invoking", func);
     const data = await user_worker.fetch(
       new Request(request.url, { body: JSON.stringify(body), method: "POST" })
@@ -24,6 +25,27 @@ export async function handleTAPI(request: Request, env: Env, writeKey: string) {
     body = await data.json();
   }
 
+  return [
+    new Request(request.url, {
+      body: JSON.stringify(body),
+      headers: request.headers,
+      cf: request.cf as RequestInitCfProperties,
+      method: request.method,
+    }),
+    response,
+    context,
+  ];
+};
+
+export const enrichEdgeTraits: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  const url = new URL(request.url);
+  const parts = url.pathname.split("/");
+  const method = parts.pop();
+  let body: { [key: string]: any } = await request.json();
   if (method === "i" && request.cf) {
     body.traits = {
       ...body.traits,
@@ -39,6 +61,27 @@ export async function handleTAPI(request: Request, env: Env, writeKey: string) {
       },
     };
   }
+  return [
+    new Request(request.url, {
+      body: JSON.stringify(body),
+      headers: request.headers,
+      cf: request.cf as RequestInitCfProperties,
+      method: request.method,
+    }),
+    response,
+    context,
+  ];
+};
+
+export const handleTAPI: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  const url = new URL(request.url);
+  const parts = url.pathname.split("/");
+  const method = parts.pop();
+  let body: { [key: string]: any } = await request.json();
 
   const init = {
     method: "POST",
@@ -48,5 +91,5 @@ export async function handleTAPI(request: Request, env: Env, writeKey: string) {
 
   const resp = await fetch(`https://api.segment.io/v1/${method}`, init);
 
-  return resp;
-}
+  return [request, resp, context];
+};

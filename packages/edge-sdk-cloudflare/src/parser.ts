@@ -1,5 +1,7 @@
 import snippet from "@segment/snippet";
 import { nanoid } from "nanoid";
+import { Handler } from "worktop";
+import { HandlerFunction } from "./types";
 
 class ElementHandler {
   host: string;
@@ -45,23 +47,31 @@ class ElementHandler {
 }
 
 export default function enrichWithAJS(
-  response: Response,
   host: string,
   writeKey: string,
-  basePath: string,
-  anonymousId: string,
-  traits: any
-): Response {
-  return new HTMLRewriter()
-    .on(
-      "head",
-      new ElementHandler(
-        host,
-        writeKey,
-        basePath,
-        anonymousId,
-        JSON.stringify(traits)
-      )
-    )
-    .transform(response);
+  basePath: string
+): HandlerFunction {
+  return async (request, response, context) => {
+    if (!response) {
+      return Promise.reject("No response");
+    }
+    const { anonymousId, traits, clientSideTraits } = context;
+
+    return [
+      request,
+      new HTMLRewriter()
+        .on(
+          "head",
+          new ElementHandler(
+            host,
+            writeKey,
+            basePath,
+            anonymousId,
+            JSON.stringify(clientSideTraits)
+          )
+        )
+        .transform(response),
+      context,
+    ];
+  };
 }
