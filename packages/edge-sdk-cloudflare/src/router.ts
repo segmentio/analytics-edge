@@ -12,32 +12,6 @@ interface Route {
 
 type Method = "get" | "post" | "put" | "delete" | "patch";
 
-function generateRouteMatcher(basePath: string): [Method, string, RegExp][] {
-  const rawRoutes: [Method, string, string][] = [
-    ["get", "settings", `${basePath}/v1/projects/:writeKey/settings`],
-    ["get", "bundles", `${basePath}/analytics-next/bundles/:bundleName`],
-    ["get", "destinations", `${basePath}/next-integrations/*`],
-    ["post", "tapi", `${basePath}/evs/:method`],
-    ["get", "source-function", `${basePath}/sf/:function`],
-    ["post", "personas", `${basePath}/personas`],
-    ["get", "ajs", `${basePath}/ajs/:hash`],
-    ["get", "root", `*`],
-  ];
-
-  return rawRoutes.map((i) => [
-    i[0],
-    i[1],
-    RegExp(
-      `^/${i[2]
-        .replace(/(\/?)\*/g, "($1.*)?") // trailing wildcard
-        .replace(/\/$/, "") // remove trailing slash
-        .replace(/:(\w+)(\?)?(\.)?/g, "$2(?<$1>[^/]+)$2$3") // named params
-        .replace(/\.(?=[\w(])/, "\\.") // dot in path
-        .replace(/\)\.\?\(([^\[]+)\[\^/g, "?)\\.?($1(?<=\\.)[^\\.")}/*$`
-    ),
-  ]);
-}
-
 export class Router {
   basePath: string;
   routes: [Method, string, RegExp][];
@@ -49,15 +23,40 @@ export class Router {
 
   constructor(basePath: string, env: Env, instance: Segment) {
     this.basePath = basePath;
-    this.routes = generateRouteMatcher(basePath);
+    this.routes = this.generateRouteMatcher(basePath);
     this.handlers = {};
     this.env = env;
     this.instance = instance;
   }
 
-  getRoute(path: string, method: string): Route {
+  private generateRouteMatcher(basePath: string): [Method, string, RegExp][] {
+    const rawRoutes: [Method, string, string][] = [
+      ["get", "settings", `${basePath}/v1/projects/:writeKey/settings`],
+      ["get", "bundles", `${basePath}/analytics-next/bundles/:bundleName`],
+      ["get", "destinations", `${basePath}/next-integrations/*`],
+      ["post", "tapi", `${basePath}/evs/:method`],
+      ["get", "source-function", `${basePath}/sf/:function`],
+      ["post", "personas", `${basePath}/personas`],
+      ["get", "ajs", `${basePath}/ajs/:hash`],
+      ["get", "root", `*`],
+    ];
+
+    return rawRoutes.map((i) => [
+      i[0],
+      i[1],
+      RegExp(
+        `^/${i[2]
+          .replace(/(\/?)\*/g, "($1.*)?") // trailing wildcard
+          .replace(/\/$/, "") // remove trailing slash
+          .replace(/:(\w+)(\?)?(\.)?/g, "$2(?<$1>[^/]+)$2$3") // named params
+          .replace(/\.(?=[\w(])/, "\\.") // dot in path
+          .replace(/\)\.\?\(([^\[]+)\[\^/g, "?)\\.?($1(?<=\\.)[^\\.")}/*$`
+      ),
+    ]);
+  }
+
+  private matchRoute(path: string, method: Method): Route {
     for (const [httpMethod, route, matcher] of this.routes) {
-      console.log("matching", httpMethod, route, matcher, path, method);
       if (httpMethod !== method) {
         continue;
       }
@@ -69,6 +68,7 @@ export class Router {
       }
     }
 
+    // bypass route i.e., proxy to origin
     return { route: "bypass", params: undefined };
   }
 
@@ -81,12 +81,12 @@ export class Router {
 
   async handle(
     request: Request
-  ): Promise<[Request, Response | undefined, any]> {
+  ): Promise<[Request, Response | undefined, RouterContext]> {
     const url = new URL(request.url);
     const method = request.method.toLowerCase() as Method;
     const originalRequest = request;
     const path = url.pathname;
-    const { route, params } = this.getRoute(path, method);
+    const { route, params } = this.matchRoute(path, method);
     const handlers = this.handlers[route];
     let response: Response | undefined = undefined;
     let context: RouterContext = {
