@@ -10,18 +10,61 @@ type Env = SDKEnv & {
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const writeKey = env.SEGMENT_WRITE_KEY;
-    const personasSpaceId = env.PERSONAS_SPACE_ID;
-    const personasToken = env.PERSONAS_TOKEN;
-
     const segment = new Segment(
-      writeKey,
+      env.SEGMENT_WRITE_KEY,
       "seg",
       true,
-      personasSpaceId,
-      personasToken
+      env,
+      env.PERSONAS_SPACE_ID,
+      env.PERSONAS_TOKEN
     );
 
-    return segment.handle(request, env);
+    segment.registerABTesting("/", "/van", "/sf", (traits) => {
+      if (!traits) {
+        return;
+      }
+      return !!(traits.age > 10);
+    });
+
+    segment.clientSideTraits((traits = {}) => {
+      return {
+        ageRange: traits?.age > 10 ? "adult" : "child",
+      };
+    });
+
+    const resp = await segment.handleEvent(request, env);
+    //@ts-ignore
+    return resp;
   },
 };
+
+/*
+    const segment = new Segment(
+      env.SEGMENT_WRITE_KEY,
+      "seg",
+      true,
+      env,
+      env.PERSONAS_SPACE_ID,
+      env.PERSONAS_TOKEN
+    );
+
+    segment.registerABTesting("/", "/van", "/sf", (traits) => {
+      if (!traits) {
+        return;
+      }
+      return !!(traits.age > 10);
+    });
+
+
+    const resp = await segment.handleEvent(request, env);
+
+*/
+
+/*
+    segment.clientSideTraits((traits = {}) => {
+      return {
+        ageRange: traits?.age > 10 ? "adult" : "child",
+      };
+    });
+
+*/

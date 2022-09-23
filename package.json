@@ -13,7 +13,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=cloudflare_example^... && changeset publish"
+    "release": "turbo run build --filter=cloudflare_example^... && changeset publish",
+    "example:deploy": "yarn build && yarn workspace @segment/cloudflare_example deploy:prod"
   },
   "devDependencies": {
     "@changesets/cli": "^2.22.0",

@@ -15,6 +15,7 @@
   "scripts": {
     "start": "wrangler dev",
     "deploy": "wrangler publish",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "deploy:prod": "wrangler publish --env production"
   }
 }
