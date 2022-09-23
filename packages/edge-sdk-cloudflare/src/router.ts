@@ -72,6 +72,7 @@ export class Router {
     request: Request
   ): Promise<[Request, Response | undefined, any]> {
     const url = new URL(request.url);
+    const originalRequest = request;
     const path = url.pathname;
     const { route, params } = this.getRoute(path);
     const handlers = this.handlers[route];
@@ -85,10 +86,18 @@ export class Router {
       return Promise.reject("No handlers for route");
     }
 
-    for (const handler of handlers) {
-      [request, response, context] = await handler(request, response, context);
-    }
+    try {
+      for (const handler of handlers) {
+        [request, response, context] = await handler(
+          request,
+          response,
+          context
+        );
+      }
 
-    return [request, response, context];
+      return [request, response, context];
+    } catch (e) {
+      return [originalRequest, await fetch(originalRequest), context];
+    }
   }
 }

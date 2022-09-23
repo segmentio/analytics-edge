@@ -23,7 +23,7 @@ export function enrichResponseWithCookie(
       path: "/",
       maxage: 31536000,
       domain: host,
-    }); // maybe append to existing cookie?
+    }); // TODO: maybe append to existing cookie?
     newResponse.headers.set("set-cookie", cookie);
     const newContext = { ...context, anonymousId: value };
     return [request, newResponse, newContext];

@@ -27,7 +27,7 @@ export async function extractProfile(
     console.log("no profile data found");
     if (personasToken && personasSpaceId) {
       const data = await fetch(
-        `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits`,
+        `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits?limit=200`,
         {
           method: "GET",
           headers: {
