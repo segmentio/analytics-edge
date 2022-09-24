@@ -92,24 +92,17 @@ export class Router {
     let context: RouterContext = {
       instance: this.instance,
       env: this.env,
+      params,
     };
 
     if (!handlers) {
       return Promise.reject("No handlers for route");
     }
 
-    try {
-      for (const handler of handlers) {
-        [request, response, context] = await handler(
-          request,
-          response,
-          context
-        );
-      }
-
-      return [request, response, context];
-    } catch (e) {
-      return [originalRequest, await fetch(originalRequest), context];
+    for (const handler of handlers) {
+      [request, response, context] = await handler(request, response, context);
     }
+
+    return [request, response, context];
   }
 }
