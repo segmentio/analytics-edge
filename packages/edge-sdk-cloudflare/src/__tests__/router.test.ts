@@ -3,46 +3,79 @@ import { Segment } from "../segment";
 import { Env } from "../types";
 
 describe("router", () => {
+  const router = new Router("seg", {} as Env, {} as Segment);
+  const handler = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve([{}, {}, {}]));
+
+  beforeAll(() => {
+    const routes = [
+      "ajs",
+      "settings",
+      "bundles",
+      "destinations",
+      "tapi",
+      "root",
+    ];
+    routes.forEach((route) => {
+      router.register(route, (a, b, c) => handler(a, b, { ...c, route }));
+    });
+  });
+
+  afterEach(() => {
+    handler.mockClear();
+  });
+
   it("Proxy settings", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(router.getRoute("/seg/v1/projects/abc/settings")).toEqual({
-      route: "settings",
+    const request = new Request("https://😬.com/seg/v1/projects/abc/settings");
+    router.handle(request);
+
+    expect(handler).toHaveBeenCalledWith(request, undefined, {
+      env: {},
+      instance: {},
       params: {
         writeKey: "abc",
       },
+      route: "settings",
     });
   });
 
   it("Proxy bundles and grabs the bundle name", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(
-      router.getRoute(
-        "/seg/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"
-      )
-    ).toEqual({
-      route: "bundles",
+    const request = new Request(
+      "https://👻.com/seg/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"
+    );
+    router.handle(request);
+
+    expect(handler).toHaveBeenCalledWith(request, undefined, {
+      env: {},
+      instance: {},
       params: {
         bundleName: "schemaFilter.bundle.debb169c1abb431faaa6.js",
       },
+      route: "bundles",
     });
   });
 
   it("Proxy destinations", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(
-      router.getRoute("/seg/next-integrations/actions/braze/ha$hed.js")
-    ).toEqual({
+    const request = new Request(
+      "https://👀.com/seg/next-integrations/actions/braze/ha$hed.js"
+    );
+    router.handle(request);
+    expect(handler).toHaveBeenCalledWith(request, undefined, {
+      env: {},
+      instance: {},
       route: "destinations",
     });
   });
 
   it("Proxy tracking API", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(router.getRoute("/seg/evs/t")).toEqual({
+    const request = new Request("https://👣.com/seg/evs/t", {
+      method: "POST",
+    });
+    router.handle(request);
+    expect(handler).toHaveBeenCalledWith(request, undefined, {
+      env: {},
+      instance: {},
       route: "tapi",
       params: {
         method: "t",
@@ -50,43 +83,12 @@ describe("router", () => {
     });
   });
 
-  it("Proxy source functions", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(router.getRoute("/seg/sf/mySuperFancyFunction")).toEqual({
-      route: "source-function",
-      params: {
-        function: "mySuperFancyFunction",
-      },
-    });
-  });
-
-  it("Proxy personas", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(router.getRoute("/seg/personas")).toEqual({
-      route: "personas",
-    });
-  });
-
-  it("Proxy other routes to root", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(router.getRoute("index.html")).toEqual({
-      route: "root",
-    });
-    expect(router.getRoute("/shop/products/fancyShoe")).toEqual({
-      route: "root",
-    });
-    expect(router.getRoute("/logout")).toEqual({
-      route: "root",
-    });
-  });
-
   it("Proxy AJS", () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    expect(router).toBeDefined();
-    expect(router.getRoute("/seg/ajs/r0tpUjybtJJxOT82lV62a")).toEqual({
+    const request = new Request("https://🚀.com/seg/ajs/r0tpUjybtJJxOT82lV62a");
+    router.handle(request);
+    expect(handler).toHaveBeenCalledWith(request, undefined, {
+      env: {},
+      instance: {},
       route: "ajs",
       params: {
         hash: "r0tpUjybtJJxOT82lV62a",
@@ -94,27 +96,13 @@ describe("router", () => {
     });
   });
 
-  it("testing handlers", async () => {
-    const router = new Router("seg", {} as Env, {} as Segment);
-    const request = {
-      method: "GET",
-      url: "https://www.segment.com/seg/ajs/r0tpUjybtJJxOT82lV62a",
-    } as any;
-
-    expect(router).toBeDefined();
-    const handlerOne = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve([{}, {}]));
-    const handlerTwo = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve([request, {}]));
-
-    router.register("ajs", [handlerOne, handlerTwo]);
-    await router.handle(request);
-    expect(handlerOne).toHaveBeenCalledWith(request, undefined, {
+  it("Proxy pages", () => {
+    const request = new Request("https://🍣.com/sashimi/salmon");
+    router.handle(request);
+    expect(handler).toHaveBeenCalledWith(request, undefined, {
       env: {},
       instance: {},
+      route: "root",
     });
-    expect(handlerTwo).toHaveBeenCalledWith(request, {}, {});
   });
 });
