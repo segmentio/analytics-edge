@@ -108,7 +108,7 @@ export const handleProfile: HandlerFunction = async function (
   return [request, response, { ...context, traits }];
 };
 
-export const handleABTests: HandlerFunction = async function (
+export const handleExperiments: HandlerFunction = async function (
   request,
   response,
   context

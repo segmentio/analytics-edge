@@ -7,7 +7,7 @@ import { enrichResponseWithCookie, getCookie } from "./cookies";
 import enrichWithAJS from "./parser";
 import {
   extractProfile,
-  handleABTests,
+  handleExperiments,
   handleClientSideTraits,
   handlePersonasWebhook,
   handleProfile,
@@ -63,7 +63,7 @@ export class Segment {
       "root",
       handleOriginWithEarlyExit,
       handleProfile,
-      handleABTests,
+      handleExperiments,
       handleOrigin,
       enrichResponseWithCookie("ajs_anonymous_id", host || undefined),
       handleClientSideTraits,
@@ -75,7 +75,7 @@ export class Segment {
     return resp;
   }
 
-  async registerABTesting(
+  async registerExperiment(
     originalRoute: string,
     positiveRoute: string,
     negativeRoute: string,

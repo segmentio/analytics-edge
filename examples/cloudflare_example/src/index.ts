@@ -19,7 +19,7 @@ export default {
       env.PERSONAS_TOKEN
     );
 
-    segment.registerABTesting("/", "/van", "/sf", (traits) => {
+    segment.registerExperiment("/", "/van", "/sf", (traits) => {
       if (!traits) {
         return;
       }
@@ -48,7 +48,7 @@ export default {
       env.PERSONAS_TOKEN
     );
 
-    segment.registerABTesting("/", "/van", "/sf", (traits) => {
+    segment.registerExperiment("/", "/van", "/sf", (traits) => {
       if (!traits) {
         return;
       }
