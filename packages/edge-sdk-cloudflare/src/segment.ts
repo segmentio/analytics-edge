@@ -15,7 +15,7 @@ import {
 import { handleAJS, handleBundles, handleSettings } from "./assetsProxy";
 import { enrichEdgeTraits, handleEdgeFunctions, handleTAPI } from "./tapi";
 import { handleSourceFunction } from "./sourceFunction";
-import { handleOrigin } from "./origin";
+import { handleOrigin, handleOriginWithEarlyExit } from "./origin";
 
 export class Segment {
   writeKey: string;
@@ -61,6 +61,7 @@ export class Segment {
     this.router.register("tapi", enrichEdgeTraits, handleTAPI);
     this.router.register(
       "root",
+      handleOriginWithEarlyExit,
       handleProfile,
       handleABTests,
       handleOrigin,

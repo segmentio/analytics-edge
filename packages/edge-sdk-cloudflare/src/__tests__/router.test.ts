@@ -97,7 +97,17 @@ describe("router", () => {
   });
 
   it("Proxy pages", () => {
-    const request = new Request("https://🍣.com/sashimi/salmon");
+    let request = new Request("https://🍣.com/sashimi/salmon");
+    router.handle(request);
+    expect(handler).toHaveBeenCalledWith(request, undefined, {
+      env: {},
+      instance: {},
+      route: "root",
+    });
+
+    request = new Request(
+      "https://🍣.com/sashimi/salmon/sashimi_side_shot.jpg"
+    );
     router.handle(request);
     expect(handler).toHaveBeenCalledWith(request, undefined, {
       env: {},

@@ -101,6 +101,9 @@ export class Router {
 
     for (const handler of handlers) {
       [request, response, context] = await handler(request, response, context);
+      if (context.earlyExit) {
+        break;
+      }
     }
 
     return [request, response, context];

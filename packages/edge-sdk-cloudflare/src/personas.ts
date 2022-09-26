@@ -120,7 +120,6 @@ export const handleABTests: HandlerFunction = async function (
     negativeRoute,
     evaluationFunction,
   } of context.instance.experiments) {
-    console.log("checking experiment", originalRoute);
     if (url.pathname === originalRoute) {
       const testResult = evaluationFunction(context.traits);
       console.log("experiment test result", testResult);
