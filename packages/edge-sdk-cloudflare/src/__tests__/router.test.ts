@@ -115,4 +115,50 @@ describe("router", () => {
       route: "root",
     });
   });
+
+  it("Router runs the handlers in sequence", async () => {
+    const handlerA = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve([{ url: "abc" }, { url: "abc" }, { data: "abc" }])
+      );
+
+    const handlerB = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([{}, {}, {}]));
+
+    router.register("root", handlerA, handlerB);
+
+    const request = new Request("https://🍣.com/sashimi/salmon");
+    await router.handle(request);
+
+    expect(handlerA).toHaveBeenCalledWith({}, {}, {});
+
+    expect(handlerB).toHaveBeenCalledWith(
+      { url: "abc" },
+      { url: "abc" },
+      { data: "abc" }
+    );
+  });
+
+  it("Router can do early exit", async () => {
+    const handlerA = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve([{ url: "abc" }, { url: "abc" }, { earlyExit: true }])
+      );
+
+    const handlerB = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([{}, {}, {}]));
+
+    router.register("root", handlerA, handlerB);
+
+    const request = new Request("https://🍣.com/sashimi/salmon");
+    await router.handle(request);
+
+    expect(handlerA).toHaveBeenCalledWith({}, {}, {});
+
+    expect(handlerB).not.toHaveBeenCalled();
+  });
 });

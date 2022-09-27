@@ -99,8 +99,13 @@ export class Router {
       return Promise.reject("No handlers for route");
     }
 
+    console.log(
+      `Executing handler for route: ${route}, method: ${handlers.length}`
+    );
+
     for (const handler of handlers) {
       [request, response, context] = await handler(request, response, context);
+
       if (context.earlyExit) {
         break;
       }

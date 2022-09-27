@@ -23,6 +23,7 @@ export interface UserIdentity {
 export interface RouterContext {
   instance: Segment;
   env: Env;
+  earlyExit?: boolean;
   [key: string]: any;
 }
 
