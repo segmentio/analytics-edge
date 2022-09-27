@@ -66,7 +66,7 @@ export default function enrichWithAJS(
             host,
             writeKey,
             basePath,
-            anonymousId,
+            anonymousId || "",
             JSON.stringify(clientSideTraits)
           )
         )

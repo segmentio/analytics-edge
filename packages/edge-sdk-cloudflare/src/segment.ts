@@ -4,7 +4,6 @@ import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
 import { Env } from "./types";
 import {
-  enrichResponseWithCookie,
   enrichResponseWithIdCookies,
   extractIdFromCookie,
   extractIdFromPayload,
