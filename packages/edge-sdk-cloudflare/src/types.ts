@@ -24,6 +24,8 @@ export interface RouterContext {
   instance: Segment;
   env: Env;
   earlyExit?: boolean;
+  anonymousId?: string;
+  userId?: string;
   [key: string]: any;
 }
 

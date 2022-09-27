@@ -3,7 +3,13 @@ import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
 import { Env } from "./types";
-import { enrichResponseWithCookie, getCookie } from "./cookies";
+import {
+  enrichResponseWithCookie,
+  enrichResponseWithIdCookies,
+  extractIdFromCookie,
+  extractIdFromPayload,
+  getCookie,
+} from "./cookies";
 import enrichWithAJS from "./parser";
 import {
   extractProfile,
@@ -50,22 +56,26 @@ export class Segment {
   async handleEvent(request: Request, env: Env) {
     const host = request.headers.get("host") || ""; // can this be null?
 
-    this.router.register(
-      "ajs",
-      handleAJS,
-      enrichResponseWithCookie("ajs_anonymous_id", host || undefined)
-    );
+    this.router.register("ajs", handleAJS);
     this.router.register("settings", handleSettings);
     this.router.register("bundles", handleBundles);
     this.router.register("destinations", handleBundles);
-    this.router.register("tapi", enrichEdgeTraits, handleTAPI);
+    this.router.register(
+      "tapi",
+      extractIdFromCookie,
+      extractIdFromPayload,
+      enrichEdgeTraits,
+      handleTAPI,
+      enrichResponseWithIdCookies(host || undefined)
+    );
     this.router.register(
       "root",
       handleOriginWithEarlyExit,
+      extractIdFromCookie,
       handleProfile,
       handleExperiments,
       handleOrigin,
-      enrichResponseWithCookie("ajs_anonymous_id", host || undefined),
+      enrichResponseWithIdCookies(host || undefined),
       handleClientSideTraits,
       enrichWithAJS(host, this.writeKey, this.basePath)
     );
