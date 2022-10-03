@@ -19,52 +19,16 @@ export default {
       env.PERSONAS_TOKEN
     );
 
-    segment.registerExperiment("/", "/van", "/sf", (traits) => {
-      if (!traits) {
+    segment.registerExperiment("/", "/van", "/sf", (audiences) => {
+      if (!audiences) {
         return;
       }
-      return !!(traits.age > 10);
-    });
-
-    segment.clientSideTraits((traits = {}) => {
-      return {
-        ageRange: traits?.age > 10 ? "adult" : "child",
-      };
+      return !!audiences.vancouver_crew;
     });
 
     const resp = await segment.handleEvent(request, env);
+
     //@ts-ignore
     return resp;
   },
 };
-
-/*
-    const segment = new Segment(
-      env.SEGMENT_WRITE_KEY,
-      "seg",
-      true,
-      env,
-      env.PERSONAS_SPACE_ID,
-      env.PERSONAS_TOKEN
-    );
-
-    segment.registerExperiment("/", "/van", "/sf", (traits) => {
-      if (!traits) {
-        return;
-      }
-      return !!(traits.age > 10);
-    });
-
-
-    const resp = await segment.handleEvent(request, env);
-
-*/
-
-/*
-    segment.clientSideTraits((traits = {}) => {
-      return {
-        ageRange: traits?.age > 10 ? "adult" : "child",
-      };
-    });
-
-*/
