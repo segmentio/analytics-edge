@@ -7,6 +7,38 @@ export const handleAJS: HandlerFunction = async (request, response, ctx) => {
   return [request, resp, ctx];
 };
 
+export const enrichAssetWithAJSCalls: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  if (!response) {
+    return [request, response, ctx];
+  }
+
+  const { userId, anonymousId } = ctx;
+
+  const anonymousCall = `${
+    anonymousId ? `analytics.setAnonymousId("${anonymousId}");` : ""
+  }`;
+
+  const idCall = `${userId ? `analytics.identify("${userId}");` : ""}`;
+
+  const content = await response.text();
+  const body = `
+    ${anonymousCall}
+    ${idCall}
+    ${content}`;
+
+  const init = {
+    headers: response?.headers,
+    status: response?.status,
+    statusText: response?.statusText,
+  };
+
+  return [request, new Response(body, init), ctx];
+};
+
 // Proxy Settings
 export const handleSettings: HandlerFunction = async (
   request,

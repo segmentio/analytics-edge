@@ -39,7 +39,6 @@ class ElementHandler {
             "Segment.io": {apiHost: "${this.host}/${this.basePath}/evs"}
           }
         });
-        analytics.setAnonymousId("${this.anonymousId}");
         analytics.identify(${this.traits})`
       );
     element.append(`<script>${snip}</script>`, { html: true });

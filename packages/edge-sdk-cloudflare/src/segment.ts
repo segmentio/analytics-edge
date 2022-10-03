@@ -17,7 +17,12 @@ import {
   handlePersonasWebhook,
   handleProfile,
 } from "./personas";
-import { handleAJS, handleBundles, handleSettings } from "./assetsProxy";
+import {
+  enrichAssetWithAJSCalls,
+  handleAJS,
+  handleBundles,
+  handleSettings,
+} from "./assetsProxy";
 import { enrichEdgeTraits, handleEdgeFunctions, handleTAPI } from "./tapi";
 import { handleSourceFunction } from "./sourceFunction";
 import { handleOrigin, handleOriginWithEarlyExit } from "./origin";
@@ -55,7 +60,15 @@ export class Segment {
   async handleEvent(request: Request, env: Env) {
     const host = request.headers.get("host") || ""; // can this be null?
 
-    this.router.register("ajs", handleAJS);
+    this.router.register(
+      "ajs",
+      extractIdFromCookie,
+      handleProfile,
+      handleAJS,
+      enrichResponseWithIdCookies(host || undefined),
+      handleClientSideTraits,
+      enrichAssetWithAJSCalls
+    );
     this.router.register("settings", handleSettings);
     this.router.register("bundles", handleBundles);
     this.router.register("destinations", handleBundles);
