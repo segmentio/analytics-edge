@@ -1,22 +1,7 @@
 import { Router } from "../router";
 import { Segment } from "../segment";
 import { Env } from "../types";
-
-const mockContext = {
-  settings: {
-    writeKey: "test",
-    routePrefix: "seg",
-    collectEdgeData: true,
-    personasSpaceId: "test",
-    personasToken: "test",
-    baseSegmentCDN: "https://cdn.segment.com",
-  },
-  env: {
-    Profiles: {} as any,
-    EdgeFunctions: {} as any,
-    dispatcher: {} as any,
-  },
-};
+import { mockContext } from "./mocks";
 
 describe("router", () => {
   const router = new Router("seg", mockContext);
@@ -141,6 +126,7 @@ describe("router", () => {
     const request = new Request("https://🍣.com/sashimi/salmon");
     await router.handle(request);
 
+    // output from default handler in beforeAll is {} {} {}
     expect(handlerA).toHaveBeenCalledWith({}, {}, {});
 
     expect(handlerB).toHaveBeenCalledWith(
@@ -169,5 +155,17 @@ describe("router", () => {
     expect(handlerA).toHaveBeenCalledWith({}, {}, {});
 
     expect(handlerB).not.toHaveBeenCalled();
+  });
+
+  it("Invalid routes", async () => {
+    const request = new Request("https://🤦.com/api/get-sushi-ingredients", {
+      method: "POST",
+    });
+
+    try {
+      await router.handle(request);
+    } catch (e) {
+      expect(e).toBe("No handlers for route");
+    }
   });
 });
