@@ -13,31 +13,31 @@ interface Route {
 type Method = "get" | "post" | "put" | "delete" | "patch";
 
 export class Router {
-  basePath: string;
+  routePrefix: string;
   routes: [Method, string, RegExp][];
   handlers: {
     [key: string]: HandlerFunction[];
   };
-  env: Env;
-  instance: Segment;
+  routerContext: RouterContext;
 
-  constructor(basePath: string, env: Env, instance: Segment) {
-    this.basePath = basePath;
-    this.routes = this.generateRouteMatcher(basePath);
+  constructor(routePrefix: string, routerContext: RouterContext) {
+    this.routePrefix = routePrefix;
+    this.routes = this.generateRouteMatcher(routePrefix);
     this.handlers = {};
-    this.env = env;
-    this.instance = instance;
+    this.routerContext = routerContext;
   }
 
-  private generateRouteMatcher(basePath: string): [Method, string, RegExp][] {
+  private generateRouteMatcher(
+    routePrefix: string
+  ): [Method, string, RegExp][] {
     const rawRoutes: [Method, string, string][] = [
-      ["get", "settings", `${basePath}/v1/projects/:writeKey/settings`],
-      ["get", "bundles", `${basePath}/analytics-next/bundles/:bundleName`],
-      ["get", "destinations", `${basePath}/next-integrations/*`],
-      ["post", "tapi", `${basePath}/evs/:method`],
-      ["get", "source-function", `${basePath}/sf/:function`],
-      ["post", "personas", `${basePath}/personas`],
-      ["get", "ajs", `${basePath}/ajs/:hash`],
+      ["get", "settings", `${routePrefix}/v1/projects/:writeKey/settings`],
+      ["get", "bundles", `${routePrefix}/analytics-next/bundles/:bundleName`],
+      ["get", "destinations", `${routePrefix}/next-integrations/*`],
+      ["post", "tapi", `${routePrefix}/evs/:method`],
+      ["get", "source-function", `${routePrefix}/sf/:function`],
+      ["post", "personas", `${routePrefix}/personas`],
+      ["get", "ajs", `${routePrefix}/ajs/:hash`],
       ["get", "root", `*`],
     ];
 
@@ -90,8 +90,7 @@ export class Router {
     const handlers = this.handlers[route];
     let response: Response | undefined = undefined;
     let context: RouterContext = {
-      instance: this.instance,
-      env: this.env,
+      ...this.routerContext,
       params,
     };
 

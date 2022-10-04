@@ -99,8 +99,8 @@ export const handleProfile: HandlerFunction = async function (
       userId: getCookie(request, "ajs_user_id"),
       anonymousId: getCookie(request, "ajs_anonymous_id"),
     },
-    context.instance.personasSpaceId,
-    context.instance.personasToken
+    context.settings.personasSpaceId,
+    context.settings.personasToken
   );
 
   const traits = profileObject?.traits;
@@ -113,39 +113,41 @@ export const handleExperiments: HandlerFunction = async function (
   response,
   context
 ) {
-  const url = new URL(request.url);
-  for (const {
-    originalRoute,
-    positiveRoute,
-    negativeRoute,
-    evaluationFunction,
-  } of context.instance.experiments) {
-    if (url.pathname === originalRoute) {
-      const testResult = evaluationFunction(context.traits);
-      console.log("experiment test result", testResult);
-      if (testResult === true) {
-        url.pathname = positiveRoute;
-        return [
-          new Request(url, {
-            method: request.method,
-            headers: request.headers,
-            body: request.body,
-          }),
-          response,
-          context,
-        ];
-      } else if (testResult === false) {
-        url.pathname = negativeRoute;
+  if (context.experiments) {
+    const url = new URL(request.url);
+    for (const {
+      originalRoute,
+      positiveRoute,
+      negativeRoute,
+      evaluationFunction,
+    } of context.experiments) {
+      if (url.pathname === originalRoute) {
+        const testResult = evaluationFunction(context.traits);
+        console.log("experiment test result", testResult);
+        if (testResult === true) {
+          url.pathname = positiveRoute;
+          return [
+            new Request(url, {
+              method: request.method,
+              headers: request.headers,
+              body: request.body,
+            }),
+            response,
+            context,
+          ];
+        } else if (testResult === false) {
+          url.pathname = negativeRoute;
 
-        return [
-          new Request(url, {
-            method: request.method,
-            headers: request.headers,
-            body: request.body,
-          }),
-          response,
-          context,
-        ];
+          return [
+            new Request(url, {
+              method: request.method,
+              headers: request.headers,
+              body: request.body,
+            }),
+            response,
+            context,
+          ];
+        }
       }
     }
   }
@@ -157,7 +159,10 @@ export const handleClientSideTraits: HandlerFunction = async function (
   response,
   context
 ) {
-  console.log("handling client side traits");
-  const clientSideTraits = context.instance.traitsFunc(context.traits);
-  return [request, response, { ...context, clientSideTraits }];
+  if (context.traitsFunc) {
+    const clientSideTraits = context.traitsFunc(context.traits);
+    return [request, response, { ...context, clientSideTraits }];
+  } else {
+    return [request, response, context];
+  }
 };

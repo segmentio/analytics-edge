@@ -2,8 +2,24 @@ import { Router } from "../router";
 import { Segment } from "../segment";
 import { Env } from "../types";
 
+const mockContext = {
+  settings: {
+    writeKey: "test",
+    routePrefix: "seg",
+    collectEdgeData: true,
+    personasSpaceId: "test",
+    personasToken: "test",
+    baseSegmentCDN: "https://cdn.segment.com",
+  },
+  env: {
+    Profiles: {} as any,
+    EdgeFunctions: {} as any,
+    dispatcher: {} as any,
+  },
+};
+
 describe("router", () => {
-  const router = new Router("seg", {} as Env, {} as Segment);
+  const router = new Router("seg", mockContext);
   const handler = jest
     .fn()
     .mockImplementation(() => Promise.resolve([{}, {}, {}]));
@@ -31,8 +47,7 @@ describe("router", () => {
     router.handle(request);
 
     expect(handler).toHaveBeenCalledWith(request, undefined, {
-      env: {},
-      instance: {},
+      ...mockContext,
       params: {
         writeKey: "abc",
       },
@@ -47,8 +62,7 @@ describe("router", () => {
     router.handle(request);
 
     expect(handler).toHaveBeenCalledWith(request, undefined, {
-      env: {},
-      instance: {},
+      ...mockContext,
       params: {
         bundleName: "schemaFilter.bundle.debb169c1abb431faaa6.js",
       },
@@ -62,8 +76,7 @@ describe("router", () => {
     );
     router.handle(request);
     expect(handler).toHaveBeenCalledWith(request, undefined, {
-      env: {},
-      instance: {},
+      ...mockContext,
       route: "destinations",
     });
   });
@@ -74,8 +87,7 @@ describe("router", () => {
     });
     router.handle(request);
     expect(handler).toHaveBeenCalledWith(request, undefined, {
-      env: {},
-      instance: {},
+      ...mockContext,
       route: "tapi",
       params: {
         method: "t",
@@ -87,8 +99,7 @@ describe("router", () => {
     const request = new Request("https://🚀.com/seg/ajs/r0tpUjybtJJxOT82lV62a");
     router.handle(request);
     expect(handler).toHaveBeenCalledWith(request, undefined, {
-      env: {},
-      instance: {},
+      ...mockContext,
       route: "ajs",
       params: {
         hash: "r0tpUjybtJJxOT82lV62a",
@@ -100,8 +111,7 @@ describe("router", () => {
     let request = new Request("https://🍣.com/sashimi/salmon");
     router.handle(request);
     expect(handler).toHaveBeenCalledWith(request, undefined, {
-      env: {},
-      instance: {},
+      ...mockContext,
       route: "root",
     });
 
@@ -110,8 +120,7 @@ describe("router", () => {
     );
     router.handle(request);
     expect(handler).toHaveBeenCalledWith(request, undefined, {
-      env: {},
-      instance: {},
+      ...mockContext,
       route: "root",
     });
   });

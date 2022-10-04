@@ -2,7 +2,7 @@ import { HandlerFunction } from "./types";
 
 // Proxy AJS
 export const handleAJS: HandlerFunction = async (request, response, ctx) => {
-  const url = `${ctx.instance.baseSegment}/analytics.js/v1/${ctx.instance.writeKey}/analytics.min.js`;
+  const url = `${ctx.settings.baseSegmentCDN}/analytics.js/v1/${ctx.settings.writeKey}/analytics.min.js`;
   const resp = await fetch(url);
   return [request, resp, ctx];
 };
@@ -45,7 +45,7 @@ export const handleSettings: HandlerFunction = async (
   response,
   ctx
 ) => {
-  const url = `${ctx.instance.baseSegment}/v1/projects/${ctx.instance.writeKey}/settings`;
+  const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.settings.writeKey}/settings`;
   const resp = await fetch(url);
   return [request, resp, ctx];
 };
@@ -57,8 +57,8 @@ export const handleBundles: HandlerFunction = async (
   ctx
 ) => {
   const url = new URL(request.url);
-  const path = url.pathname.replace(`/${ctx.instance.basePath}/`, "/");
-  const target = `${ctx.instance.baseSegment}${path}`;
+  const path = url.pathname.replace(`/${ctx.settings.routePrefix}/`, "/");
+  const target = `${ctx.settings.baseSegmentCDN}${path}`;
   const resp = await fetch(target);
   return [request, resp, ctx];
 };

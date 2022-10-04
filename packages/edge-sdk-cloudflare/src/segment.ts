@@ -2,7 +2,7 @@ import ElementHandler from "./parser";
 import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
-import { Env } from "./types";
+import { EdgeSDKSettings, Env } from "./types";
 import {
   enrichResponseWithIdCookies,
   extractIdFromCookie,
@@ -27,34 +27,74 @@ import { enrichEdgeTraits, handleEdgeFunctions, handleTAPI } from "./tapi";
 import { handleSourceFunction } from "./sourceFunction";
 import { handleOrigin, handleOriginWithEarlyExit } from "./origin";
 
-export class Segment {
-  writeKey: string;
-  basePath: string;
-  collectEdgeData: boolean;
-  personasSpaceId: string | undefined;
-  personasToken: string | undefined;
-  router: Router;
-  baseSegment: string;
-  experiments: any[];
-  traitsFunc: (traits: any) => void;
+const sdkDefaultSettings = {
+  routePrefix: "seg",
+  collectEdgeData: true,
+  baseSegmentCDN: "https://cdn.segment.com",
+};
 
-  constructor(
-    writeKey: string,
-    basePath: string = "segment",
-    collectEdgeData = true,
-    env: Env,
-    personasSpaceId?: string,
-    personasToken?: string
-  ) {
+export class Segment {
+  private writeKey: string;
+  private routePrefix: string;
+  private collectEdgeData: boolean;
+  private personasSpaceId: string | undefined;
+  private personasToken: string | undefined;
+  private _env: Env;
+  private router: Router;
+  private baseSegmentCDN: string;
+  private _experiments: any[];
+  private _traitsFunc: (traits: any) => void;
+
+  get settings(): EdgeSDKSettings {
+    return {
+      writeKey: this.writeKey,
+      routePrefix: this.routePrefix,
+      collectEdgeData: this.collectEdgeData,
+      personasSpaceId: this.personasSpaceId,
+      personasToken: this.personasToken,
+      baseSegmentCDN: this.baseSegmentCDN,
+    };
+  }
+
+  get env(): Env {
+    return this.env;
+  }
+
+  get experiments(): any[] {
+    return this._experiments;
+  }
+
+  get traitsFunc(): (traits: any) => void {
+    return this._traitsFunc;
+  }
+
+  constructor(settings: EdgeSDKSettings, env: Env) {
+    const {
+      writeKey,
+      routePrefix,
+      collectEdgeData,
+      personasSpaceId,
+      personasToken,
+      baseSegmentCDN,
+    } = {
+      ...sdkDefaultSettings,
+      ...settings,
+    };
     this.writeKey = writeKey;
-    this.basePath = basePath;
+    this.routePrefix = routePrefix;
     this.collectEdgeData = collectEdgeData;
     this.personasSpaceId = personasSpaceId;
     this.personasToken = personasToken;
-    this.router = new Router(this.basePath, env, this);
-    this.baseSegment = "https://cdn.segment.com";
-    this.experiments = [];
-    this.traitsFunc = (traits: any) => {};
+    this.baseSegmentCDN = baseSegmentCDN;
+    this._experiments = [];
+    this._env = env;
+    this._traitsFunc = (traits: any) => {};
+    this.router = new Router(this.routePrefix, {
+      settings: this.settings,
+      env,
+      traitsFunc: this.traitsFunc,
+      experiments: this.experiments,
+    });
   }
 
   async handleEvent(request: Request, env: Env) {
@@ -89,7 +129,7 @@ export class Segment {
       handleOrigin,
       enrichResponseWithIdCookies(host || undefined),
       handleClientSideTraits,
-      enrichWithAJS(host, this.writeKey, this.basePath)
+      enrichWithAJS(host, this.writeKey, this.routePrefix)
     );
     this.router.register("bypass", handleOrigin);
     const [_, resp, __] = await this.router.handle(request);
@@ -112,6 +152,6 @@ export class Segment {
   }
 
   async clientSideTraits(func: (traits: any) => void) {
-    this.traitsFunc = func;
+    this._traitsFunc = func;
   }
 }

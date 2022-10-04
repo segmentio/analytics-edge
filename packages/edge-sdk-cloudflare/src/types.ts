@@ -21,11 +21,13 @@ export interface UserIdentity {
 }
 
 export interface RouterContext {
-  instance: Segment;
+  settings: EdgeSDKSettings;
   env: Env;
   earlyExit?: boolean;
   anonymousId?: string;
   userId?: string;
+  traitsFunc?: (traits: any) => void; // fix type
+  experiments?: any[]; // fix type
   [key: string]: any;
 }
 
@@ -35,4 +37,13 @@ export interface HandlerFunction {
     response: Response | undefined,
     context: RouterContext
   ): Promise<[Request, Response | undefined, RouterContext]>;
+}
+
+export interface EdgeSDKSettings {
+  personasSpaceId?: string;
+  personasToken?: string;
+  routePrefix?: string;
+  writeKey: string;
+  collectEdgeData?: boolean;
+  baseSegmentCDN?: string;
 }

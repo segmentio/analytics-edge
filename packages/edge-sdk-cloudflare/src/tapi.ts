@@ -6,7 +6,7 @@ export const handleEdgeFunctions: HandlerFunction = async (
   context
 ) => {
   let body: { [key: string]: any } = await request.json();
-  const writeKey = context.instance.writeKey;
+  const writeKey = context.settings.writeKey;
   // getting edge functions
   const edgeFunctions = await context.env.EdgeFunctions.list({
     prefix: writeKey,
