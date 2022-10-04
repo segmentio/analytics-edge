@@ -16,7 +16,7 @@ export function enrichResponseWithIdCookies(
     const anonymousId = context.anonymousId || nanoid();
     const userId = context.userId;
 
-    const newResponse = new Response(response.body, response);
+    const headers = new Headers(response.headers);
 
     const cookie = stringify("ajs_anonymous_id", anonymousId, {
       httponly: true,
@@ -24,7 +24,7 @@ export function enrichResponseWithIdCookies(
       maxage: 31536000,
       domain: host,
     });
-    newResponse.headers.set("set-cookie", cookie);
+    headers.append("Set-Cookie", cookie);
 
     if (userId) {
       const cookie = stringify("ajs_user_id", userId, {
@@ -33,8 +33,12 @@ export function enrichResponseWithIdCookies(
         maxage: 31536000,
         domain: host,
       });
-      newResponse.headers.set("set-cookie", cookie);
+      headers.append("Set-Cookie", cookie);
     }
+    const newResponse = new Response(response.body, {
+      ...response,
+      headers,
+    });
 
     const newContext = { ...context, anonymousId };
     return [request, newResponse, newContext];
