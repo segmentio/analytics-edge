@@ -18,13 +18,13 @@ export class Router {
   handlers: {
     [key: string]: HandlerFunction[];
   };
-  routerContext: RouterContext;
+  defaultRouterContext: RouterContext;
 
-  constructor(routePrefix: string, routerContext: RouterContext) {
+  constructor(routePrefix: string, defaultRouterContext: RouterContext) {
     this.routePrefix = routePrefix;
     this.routes = this.generateRouteMatcher(routePrefix);
     this.handlers = {};
-    this.routerContext = routerContext;
+    this.defaultRouterContext = defaultRouterContext;
   }
 
   private generateRouteMatcher(
@@ -90,7 +90,7 @@ export class Router {
     const handlers = this.handlers[route];
     let response: Response | undefined = undefined;
     let context: RouterContext = {
-      ...this.routerContext,
+      ...this.defaultRouterContext,
       params,
     };
 
