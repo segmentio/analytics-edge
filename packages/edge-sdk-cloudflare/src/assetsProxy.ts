@@ -2,7 +2,7 @@ import { HandlerFunction } from "./types";
 
 // Proxy AJS
 export const handleAJS: HandlerFunction = async (request, response, ctx) => {
-  const url = `${ctx.settings.baseSegmentCDN}/analytics.js/v1/${ctx.settings.writeKey}/analytics.min.js`;
+  const url = `${ctx.settings.baseSegmentCDN}/analytics.js/v1/${ctx.params.writeKey}/analytics.min.js`;
   const resp = await fetch(url);
   return [request, resp, ctx];
 };
@@ -45,7 +45,7 @@ export const handleSettings: HandlerFunction = async (
   response,
   ctx
 ) => {
-  const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.settings.writeKey}/settings`;
+  const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.params.writeKey}/settings`;
   const resp = await fetch(url);
   return [request, resp, ctx];
 };
