@@ -26,11 +26,13 @@ import {
 import { enrichEdgeTraits, handleEdgeFunctions, handleTAPI } from "./tapi";
 import { handleSourceFunction } from "./sourceFunction";
 import { handleOrigin, handleOriginWithEarlyExit } from "./origin";
+import { Logger, LogLevel } from "./logger";
 
 const sdkDefaultSettings = {
   routePrefix: "seg",
   collectEdgeData: true,
   baseSegmentCDN: "https://cdn.segment.com",
+  logLevels: ["error", "warn", "info", "debug"] as LogLevel[],
 };
 
 export class Segment {
@@ -44,6 +46,7 @@ export class Segment {
   private baseSegmentCDN: string;
   private _experiments: any[];
   private _traitsFunc: (traits: any) => void;
+  private logger: Logger;
 
   get settings(): EdgeSDKSettings {
     return {
@@ -76,6 +79,7 @@ export class Segment {
       personasSpaceId,
       personasToken,
       baseSegmentCDN,
+      logLevels,
     } = {
       ...sdkDefaultSettings,
       ...settings,
@@ -89,11 +93,13 @@ export class Segment {
     this._experiments = [];
     this._env = env;
     this._traitsFunc = (traits: any) => {};
+    this.logger = new Logger(logLevels);
     this.router = new Router(this.routePrefix, {
       settings: this.settings,
       env,
       traitsFunc: this.traitsFunc,
       experiments: this.experiments,
+      logger: this.logger,
     });
   }
 

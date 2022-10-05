@@ -12,4 +12,5 @@ export const mockContext = {
     EdgeFunctions: {} as any,
     dispatcher: {} as any,
   },
+  logger: {} as any,
 };
