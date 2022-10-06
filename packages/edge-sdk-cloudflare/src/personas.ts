@@ -1,31 +1,43 @@
 import { getCookie } from "./cookies";
+import { Logger } from "./logger";
 import { Env, HandlerFunction, Storage, UserIdentity } from "./types";
 
 export async function extractProfile(
   request: Request,
   profilesStore: Storage,
   userIdentity: UserIdentity,
-  personasSpaceId?: string,
-  personasToken?: string
+  personasSpaceId: string | undefined,
+  personasToken: string | undefined,
+  logger: Logger
 ): Promise<{ [key: string]: any }> {
   const { anonymousId, userId } = userIdentity;
-  console.log(
-    "extracting profile",
+
+  logger.log("debug", "Extracting user profile from edge storage", {
     anonymousId,
     userId,
-    personasSpaceId,
-    profilesStore
-  );
+  });
+
   const profile_index = userId
     ? `user_id:${userId}`
     : `anonymous_id:${anonymousId}`;
 
   const profileData = await profilesStore.get(profile_index);
+  if (profileData) {
+    return JSON.parse(profileData);
+  }
+
+  logger.log("debug", "Profile wasn't found on Edge", {
+    anonymousId,
+    userId,
+  });
   let profileObject = {};
 
-  if (!profileData) {
-    console.log("no profile data found");
-    if (personasToken && personasSpaceId) {
+  if (personasToken && personasSpaceId) {
+    logger.log("debug", "Querying Profiles API", {
+      anonymousId,
+      userId,
+    });
+    try {
       const data = await fetch(
         `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits?limit=200`,
         {
@@ -35,18 +47,20 @@ export async function extractProfile(
           },
         }
       );
-      console.log("got personas data", data);
+
       if (data.status === 200) {
         profileObject = await data.json();
         await profilesStore.put(profile_index, JSON.stringify(profileObject), {
           expirationTtl: 120,
         });
-        console.log(`reading prfile from API ${profile_index}`);
       }
+    } catch (e) {
+      logger.log("error", "Error querying Profiles API", {
+        anonymousId,
+        userId,
+        error: e,
+      });
     }
-  } else {
-    profileObject = JSON.parse(profileData);
-    console.log(`reading from cache ${profile_index}`);
   }
   return profileObject;
 }
@@ -100,7 +114,8 @@ export const handleProfile: HandlerFunction = async function (
       anonymousId: getCookie(request, "ajs_anonymous_id"),
     },
     context.settings.personasSpaceId,
-    context.settings.personasToken
+    context.settings.personasToken,
+    context.logger
   );
 
   const traits = profileObject?.traits;
