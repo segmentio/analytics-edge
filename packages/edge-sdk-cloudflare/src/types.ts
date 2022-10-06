@@ -44,7 +44,7 @@ export interface HandlerFunction {
 export interface EdgeSDKSettings {
   personasSpaceId?: string;
   personasToken?: string;
-  routePrefix?: string;
+  routePrefix: string;
   writeKey: string;
   collectEdgeData?: boolean;
   baseSegmentCDN?: string;

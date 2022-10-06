@@ -1,4 +1,3 @@
-import ElementHandler from "./parser";
 import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
@@ -9,7 +8,7 @@ import {
   extractIdFromPayload,
   getCookie,
 } from "./cookies";
-import enrichWithAJS from "./parser";
+import { enrichWithAJS } from "./parser";
 import {
   extractProfile,
   handleExperiments,
@@ -141,7 +140,7 @@ export class Segment {
       handleOrigin,
       enrichResponseWithIdCookies,
       handleClientSideTraits,
-      enrichWithAJS(host, this.writeKey, this.routePrefix)
+      enrichWithAJS
     );
     this.router.register("bypass", handleOrigin);
     const [_, resp, __] = await this.router.handle(request);

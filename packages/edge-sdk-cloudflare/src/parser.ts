@@ -6,19 +6,19 @@ import { HandlerFunction } from "./types";
 class ElementHandler {
   host: string;
   writeKey: string;
-  basePath: string;
+  routePrefix: string;
   anonymousId: string;
   traits: string;
   constructor(
     host: string,
     writeKey: string,
-    basePath: string,
+    routePrefix: string,
     anonymousId: string,
     traits: string
   ) {
     this.host = host;
     this.writeKey = writeKey;
-    this.basePath = basePath;
+    this.routePrefix = routePrefix;
     this.anonymousId = anonymousId;
     this.traits = traits;
   }
@@ -26,7 +26,7 @@ class ElementHandler {
   element(element: Element) {
     const snip = snippet
       .max({
-        host: `${this.host}/${this.basePath}`,
+        host: `${this.host}/${this.routePrefix}`,
         apiKey: this.writeKey,
         ajsPath: `/ajs/${nanoid()}`,
         useHostForBundles: true,
@@ -36,7 +36,7 @@ class ElementHandler {
         `analytics.load("${this.writeKey}");`,
         `analytics.load("${this.writeKey}", {
           integrations: {
-            "Segment.io": {apiHost: "${this.host}/${this.basePath}/evs"}
+            "Segment.io": {apiHost: "${this.host}/${this.routePrefix}/evs"}
           }
         });
         analytics.identify(${this.traits})`
@@ -45,32 +45,36 @@ class ElementHandler {
   }
 }
 
-export default function enrichWithAJS(
-  host: string,
-  writeKey: string,
-  basePath: string
-): HandlerFunction {
-  return async (request, response, context) => {
-    if (!response) {
-      return Promise.reject("No response");
-    }
-    const { anonymousId, traits, clientSideTraits } = context;
+export const enrichWithAJS: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  if (!response) {
+    return Promise.reject("No response");
+  }
+  const {
+    anonymousId,
+    traits,
+    clientSideTraits,
+    settings: { writeKey, routePrefix },
+  } = context;
+  const host = request.headers.get("host") || "";
 
-    return [
-      request,
-      new HTMLRewriter()
-        .on(
-          "head",
-          new ElementHandler(
-            host,
-            writeKey,
-            basePath,
-            anonymousId || "",
-            JSON.stringify(clientSideTraits)
-          )
+  return [
+    request,
+    new HTMLRewriter()
+      .on(
+        "head",
+        new ElementHandler(
+          host,
+          writeKey,
+          routePrefix,
+          anonymousId || "",
+          JSON.stringify(clientSideTraits)
         )
-        .transform(response),
-      context,
-    ];
-  };
-}
+      )
+      .transform(response),
+    context,
+  ];
+};
