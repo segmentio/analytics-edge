@@ -2,7 +2,7 @@ import ElementHandler from "./parser";
 import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
-import { EdgeSDKSettings, Env } from "./types";
+import { EdgeSDKFeatures, EdgeSDKSettings, Env } from "./types";
 import {
   enrichResponseWithIdCookies,
   extractIdFromCookie,
@@ -47,6 +47,7 @@ export class Segment {
   private _experiments: any[];
   private _traitsFunc: (traits: any) => void;
   private logger: Logger;
+  private features: EdgeSDKFeatures;
 
   get settings(): EdgeSDKSettings {
     return {
@@ -71,7 +72,7 @@ export class Segment {
     return this._traitsFunc;
   }
 
-  constructor(settings: EdgeSDKSettings, env: Env) {
+  constructor(settings: EdgeSDKSettings, env: Env, features: EdgeSDKFeatures) {
     const {
       writeKey,
       routePrefix,
@@ -101,6 +102,11 @@ export class Segment {
       experiments: this.experiments,
       logger: this.logger,
     });
+    this.features = features;
+  }
+
+  private setupRoutes() {
+    return null;
   }
 
   async handleEvent(request: Request, env: Env) {
@@ -111,7 +117,7 @@ export class Segment {
       extractIdFromCookie,
       handleProfile,
       handleAJS,
-      enrichResponseWithIdCookies(host || undefined),
+      enrichResponseWithIdCookies,
       handleClientSideTraits,
       enrichAssetWithAJSCalls
     );
@@ -124,7 +130,7 @@ export class Segment {
       extractIdFromPayload,
       enrichEdgeTraits,
       handleTAPI,
-      enrichResponseWithIdCookies(host || undefined)
+      enrichResponseWithIdCookies
     );
     this.router.register(
       "root",
@@ -133,7 +139,7 @@ export class Segment {
       handleProfile,
       handleExperiments,
       handleOrigin,
-      enrichResponseWithIdCookies(host || undefined),
+      enrichResponseWithIdCookies,
       handleClientSideTraits,
       enrichWithAJS(host, this.writeKey, this.routePrefix)
     );

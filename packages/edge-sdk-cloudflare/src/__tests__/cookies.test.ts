@@ -12,8 +12,10 @@ import { mockContext } from "./mocks";
 
 const getResponseWithContext = async (context: Record<string, string>) =>
   (
-    await enrichResponseWithIdCookies("sushi-shop.com")(
-      new Request("https://doest-not-matter.com/"),
+    await enrichResponseWithIdCookies(
+      new Request("https://doest-not-matter.com/", {
+        headers: { host: "sushi-shop.com" },
+      }),
       new Response(JSON.stringify({}), { headers: {} }),
       {
         ...mockContext,

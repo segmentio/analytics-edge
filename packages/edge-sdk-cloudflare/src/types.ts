@@ -49,3 +49,10 @@ export interface EdgeSDKSettings {
   collectEdgeData?: boolean;
   baseSegmentCDN?: string;
 }
+
+export interface EdgeSDKFeatures {
+  edgeTraitEnrichment?: boolean;
+  edgeExperiments?: boolean;
+  ajsInjection?: boolean;
+  serverSideCookies?: boolean;
+}
