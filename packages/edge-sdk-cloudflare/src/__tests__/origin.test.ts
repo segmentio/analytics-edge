@@ -36,11 +36,11 @@ describe("origin handler", () => {
   it("Don't fetch the origin if an experiment is setup on the route", async () => {
     const context = {
       ...mockContext,
-      experiments: [
+      variations: [
         {
-          originalRoute: "/",
-          positiveRoute: "/green",
-          negativeRoute: "/red",
+          route: "/",
+          evaluationFunction: (audiences = {} as any) =>
+            audiences.red ? "/red" : "/blue",
         },
       ],
     };

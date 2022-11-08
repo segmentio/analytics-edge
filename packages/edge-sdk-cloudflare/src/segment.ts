@@ -1,7 +1,12 @@
 import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
-import { EdgeSDKFeatures, EdgeSDKSettings, Env } from "./types";
+import {
+  EdgeSDKFeatures,
+  EdgeSDKSettings,
+  Env,
+  VariationEvaluationFunction,
+} from "./types";
 import {
   enrichResponseWithIdCookies,
   extractIdFromCookie,
@@ -11,7 +16,7 @@ import {
 import { enrichWithAJS } from "./parser";
 import {
   extractProfile,
-  handleExperiments,
+  handleVariations,
   handleClientSideTraits,
   handlePersonasWebhook,
   handleProfile,
@@ -43,7 +48,10 @@ export class Segment {
   private _env: Env;
   private router: Router;
   private baseSegmentCDN: string;
-  private _experiments: any[];
+  private _variations: Array<{
+    route: string;
+    evaluationFunction: VariationEvaluationFunction;
+  }>;
   private _traitsFunc: (traits: any) => void;
   private logger: Logger;
   private features: EdgeSDKFeatures;
@@ -63,8 +71,8 @@ export class Segment {
     return this.env;
   }
 
-  get experiments(): any[] {
-    return this._experiments;
+  get variations() {
+    return this._variations;
   }
 
   get traitsFunc(): (traits: any) => void {
@@ -90,7 +98,7 @@ export class Segment {
     this.personasSpaceId = personasSpaceId;
     this.personasToken = personasToken;
     this.baseSegmentCDN = baseSegmentCDN;
-    this._experiments = [];
+    this._variations = [];
     this._env = env;
     this._traitsFunc = (traits: any) => {};
     this.logger = new Logger(logLevels);
@@ -98,7 +106,7 @@ export class Segment {
       settings: this.settings,
       env,
       traitsFunc: this.traitsFunc,
-      experiments: this.experiments,
+      variations: this.variations,
       logger: this.logger,
     });
     this.features = features;
@@ -136,7 +144,7 @@ export class Segment {
       handleOriginWithEarlyExit,
       extractIdFromCookie,
       handleProfile,
-      handleExperiments,
+      handleVariations,
       handleOrigin,
       enrichResponseWithIdCookies,
       handleClientSideTraits,
@@ -149,15 +157,11 @@ export class Segment {
   }
 
   async registerExperiment(
-    originalRoute: string,
-    positiveRoute: string,
-    negativeRoute: string,
-    evaluationFunction: (traits: any) => boolean | undefined
+    route: string,
+    evaluationFunction: VariationEvaluationFunction
   ) {
-    this.experiments.push({
-      originalRoute,
-      positiveRoute,
-      negativeRoute,
+    this.variations.push({
+      route,
       evaluationFunction,
     });
   }

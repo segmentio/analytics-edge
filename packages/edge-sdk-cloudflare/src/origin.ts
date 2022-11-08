@@ -15,10 +15,7 @@ export const handleOriginWithEarlyExit: HandlerFunction = async (
   ctx
 ) => {
   const url = new URL(request.url);
-  if (
-    ctx.experiments &&
-    ctx.experiments.find((e) => e.originalRoute === url.pathname)
-  ) {
+  if (ctx.variations && ctx.variations.find((e) => e.route === url.pathname)) {
     // experiment setup on the route, keep going through the pipeline
     return [request, response, ctx];
   } else {

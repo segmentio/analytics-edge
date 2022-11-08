@@ -2,6 +2,8 @@ import { getCookie } from "./cookies";
 import { Logger } from "./logger";
 import { Env, HandlerFunction, Storage, UserIdentity } from "./types";
 
+const PROFILE_CACHE_TTL = 120; // 2 minutes
+
 export async function extractProfile(
   request: Request,
   profilesStore: Storage,
@@ -17,9 +19,13 @@ export async function extractProfile(
     userId,
   });
 
-  const profile_index = userId
-    ? `user_id:${userId}`
-    : `anonymous_id:${anonymousId}`;
+  // for now we only support fetching profiles by userId, in the future
+  // we can expand to all externalIds supported by personas
+  if (!userId) {
+    return {};
+  }
+
+  const profile_index = `user_id:${userId}`;
 
   const profileData = await profilesStore.get(profile_index);
   if (profileData) {
@@ -30,6 +36,7 @@ export async function extractProfile(
     anonymousId,
     userId,
   });
+
   let profileObject = {};
 
   if (personasToken && personasSpaceId) {
@@ -37,9 +44,11 @@ export async function extractProfile(
       anonymousId,
       userId,
     });
+
     try {
+      // for now we only query audiences, in the future we can expand to all traits
       const data = await fetch(
-        `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits?limit=200`,
+        `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits?limit=200&class=audience`,
         {
           method: "GET",
           headers: {
@@ -49,9 +58,13 @@ export async function extractProfile(
       );
 
       if (data.status === 200) {
-        profileObject = await data.json();
+        const dataJson = (await data.json()) as {
+          traits: { [key: string]: any };
+        };
+        profileObject = dataJson?.traits;
+
         await profilesStore.put(profile_index, JSON.stringify(profileObject), {
-          expirationTtl: 120,
+          expirationTtl: PROFILE_CACHE_TTL,
         });
       }
     } catch (e) {
@@ -118,41 +131,29 @@ export const handleProfile: HandlerFunction = async function (
     context.logger
   );
 
-  const traits = profileObject?.traits;
+  const traits = profileObject;
 
   return [request, response, { ...context, traits }];
 };
 
-export const handleExperiments: HandlerFunction = async function (
+export const handleVariations: HandlerFunction = async function (
   request,
   response,
   context
 ) {
-  if (context.experiments) {
+  if (context.variations) {
     const url = new URL(request.url);
-    for (const {
-      originalRoute,
-      positiveRoute,
-      negativeRoute,
-      evaluationFunction,
-    } of context.experiments) {
-      if (url.pathname === originalRoute) {
-        const testResult = evaluationFunction(context.traits);
-        console.log("experiment test result", testResult);
-        if (testResult === true) {
-          url.pathname = positiveRoute;
-          return [
-            new Request(url, {
-              method: request.method,
-              headers: request.headers,
-              body: request.body,
-            }),
-            response,
-            context,
-          ];
-        } else if (testResult === false) {
-          url.pathname = negativeRoute;
+    for (const { route, evaluationFunction } of context.variations) {
+      if (url.pathname === route) {
+        const originPath = evaluationFunction(context.traits);
 
+        context.logger.log("debug", "Evaluating experiment", {
+          route,
+          originPath,
+        });
+
+        if (originPath) {
+          url.pathname = originPath;
           return [
             new Request(url, {
               method: request.method,

@@ -8,9 +8,9 @@ export const mockContext = {
     baseSegmentCDN: "https://cdn.segment.com",
   },
   env: {
-    Profiles: {} as any,
+    Profiles: { get: () => null, put: () => null } as any,
     EdgeFunctions: {} as any,
     dispatcher: {} as any,
   },
-  logger: {} as any,
+  logger: { log: () => null } as any,
 };

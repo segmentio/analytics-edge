@@ -29,7 +29,10 @@ export interface RouterContext {
   anonymousId?: string;
   userId?: string;
   traitsFunc?: (traits: any) => void; // fix type
-  experiments?: any[]; // fix type
+  variations?: Array<{
+    route: string;
+    evaluationFunction: VariationEvaluationFunction;
+  }>;
   [key: string]: any;
 }
 
@@ -52,7 +55,11 @@ export interface EdgeSDKSettings {
 
 export interface EdgeSDKFeatures {
   edgeTraitEnrichment?: boolean;
-  edgeExperiments?: boolean;
+  edgeVariations?: boolean;
   ajsInjection?: boolean;
   serverSideCookies?: boolean;
 }
+
+export type VariationEvaluationFunction = (
+  audiences: Record<string, boolean>
+) => string | undefined;
