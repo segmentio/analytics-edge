@@ -47,7 +47,7 @@ export const handleTAPI: HandlerFunction = async (
   const method = parts.pop();
   let body: { [key: string]: any } = await request.json();
 
-  const init = {
+  const init: RequestInit = {
     method: "POST",
     headers: request.headers,
     body: JSON.stringify(body),

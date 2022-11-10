@@ -27,12 +27,7 @@ import {
   handleBundles,
   handleSettings,
 } from "./assetsProxy";
-import {
-  enrichEdgeTraits,
-  handleEdgeFunctions,
-  handleTAPI,
-  includeEdgeTraitsInContext,
-} from "./tapi";
+import { handleTAPI, includeEdgeTraitsInContext } from "./tapi";
 import { handleSourceFunction } from "./sourceFunction";
 import { handleOrigin, handleOriginWithEarlyExit } from "./origin";
 import { Logger, LogLevel } from "./logger";
@@ -159,7 +154,7 @@ export class Segment {
     return resp;
   }
 
-  async registerExperiment(
+  async registerVariation(
     route: string,
     evaluationFunction: VariationEvaluationFunction
   ) {

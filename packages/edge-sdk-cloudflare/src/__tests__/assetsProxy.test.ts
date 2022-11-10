@@ -30,7 +30,8 @@ describe("asset proxy", () => {
       undefined,
       {
         ...mockContext,
-        params: {
+        settings: {
+          ...mockContext.settings,
           writeKey: "abc",
         },
       }
