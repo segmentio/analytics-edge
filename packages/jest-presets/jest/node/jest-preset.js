@@ -10,4 +10,5 @@ module.exports = {
     "<rootDir>/dist",
   ],
   preset: "ts-jest",
+  testMatch: ["**/__tests__/**/*.test.ts"],
 };
