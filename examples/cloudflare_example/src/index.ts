@@ -11,19 +11,22 @@ type Env = SDKEnv & {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const segment = new Segment(
-      env.SEGMENT_WRITE_KEY,
-      "seg",
-      true,
+      {
+        writeKey: env.SEGMENT_WRITE_KEY,
+        personasSpaceId: env.PERSONAS_SPACE_ID,
+        routePrefix: "wut",
+        personasToken: env.PERSONAS_TOKEN,
+        collectEdgeData: true,
+      },
       env,
-      env.PERSONAS_SPACE_ID,
-      env.PERSONAS_TOKEN
+      {}
     );
 
-    segment.registerExperiment("/", "/van", "/sf", (audiences) => {
+    segment.registerVariation("/", (audiences) => {
       if (!audiences) {
         return;
       }
-      return !!audiences.vancouver_crew;
+      return audiences.vancouver_crew ? "/van" : "/sf";
     });
 
     const resp = await segment.handleEvent(request, env);
