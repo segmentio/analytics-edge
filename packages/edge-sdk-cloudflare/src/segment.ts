@@ -27,7 +27,12 @@ import {
   handleBundles,
   handleSettings,
 } from "./assetsProxy";
-import { enrichEdgeTraits, handleEdgeFunctions, handleTAPI } from "./tapi";
+import {
+  enrichEdgeTraits,
+  handleEdgeFunctions,
+  handleTAPI,
+  includeEdgeTraitsInContext,
+} from "./tapi";
 import { handleSourceFunction } from "./sourceFunction";
 import { handleOrigin, handleOriginWithEarlyExit } from "./origin";
 import { Logger, LogLevel } from "./logger";
@@ -131,14 +136,12 @@ export class Segment {
     this.router.register("settings", handleSettings);
     this.router.register("bundles", handleBundles);
     this.router.register("destinations", handleBundles);
-    this.router.register(
-      "tapi",
-      extractIdFromCookie,
-      extractIdFromPayload,
-      enrichEdgeTraits,
-      handleTAPI,
-      enrichResponseWithIdCookies
-    );
+
+    this.router.register("tapi", extractIdFromCookie, extractIdFromPayload);
+    this.settings.collectEdgeData &&
+      this.router.register("tapi", includeEdgeTraitsInContext);
+    this.router.register("tapi", handleTAPI, enrichResponseWithIdCookies);
+
     this.router.register(
       "root",
       handleOriginWithEarlyExit,

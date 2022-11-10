@@ -1,7 +1,7 @@
 import { handleOrigin, handleOriginWithEarlyExit } from "../origin";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { enrichEdgeTraits, handleTAPI } from "../tapi";
+import { handleTAPI, includeEdgeTraitsInContext } from "../tapi";
 import { Env } from "../types";
 import { mockContext } from "./mocks";
 
@@ -76,13 +76,17 @@ describe("origin handler", () => {
       httpProtocol: "HTTP/2",
       clientTcpRtt: 0,
     };
-    const [req, resp, context] = await enrichEdgeTraits(request, undefined, {
-      ...mockContext,
-    });
+    const [req, resp, context] = await includeEdgeTraitsInContext(
+      request,
+      undefined,
+      {
+        ...mockContext,
+      }
+    );
     const body = await req.json();
     expect(body).toBeDefined();
     //@ts-ignore
-    expect(body?.traits).toEqual({
+    expect(body?.context).toMatchObject({
       edge: {
         city: "Vancouver",
         country: "Canada",
@@ -92,7 +96,6 @@ describe("origin handler", () => {
         region: "Beautiful British Columbia",
         timezone: "America/Vancouver",
       },
-      isCool: "no",
     });
   });
 });

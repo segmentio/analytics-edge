@@ -1,6 +1,6 @@
 import { Env, HandlerFunction } from "./types";
 
-export const enrichEdgeTraits: HandlerFunction = async (
+export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
   response,
   context
@@ -9,11 +9,12 @@ export const enrichEdgeTraits: HandlerFunction = async (
   const parts = url.pathname.split("/");
   const method = parts.pop();
   let body: { [key: string]: any } = await request.json();
-  if (method === "i" && request.cf) {
-    body.traits = {
-      ...body.traits,
+  if (method && ["i", "t", "p"].includes(method) && request.cf) {
+    body.context = {
+      ...body.context,
       edge: {
         region: request.cf.region,
+        regionCode: request.cf.regionCode,
         city: request.cf.city,
         country: request.cf.country,
         continent: request.cf.continent,
