@@ -169,6 +169,8 @@ export class Segment {
 
     this.features.ajsInjection && router.register("root", enrichWithAJS);
 
+    router.register("personas", handlePersonasWebhook);
+
     router.register("bypass", handleOrigin);
     const [_, resp, __] = await this.router.handle(request);
 

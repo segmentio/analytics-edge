@@ -1,6 +1,13 @@
 import { getCookie } from "./cookies";
 import { Logger } from "./logger";
-import { Env, HandlerFunction, Storage, UserIdentity } from "./types";
+import {
+  Env,
+  HandlerFunction,
+  PersonasWebhookPayload,
+  Storage,
+  UserIdentity,
+  UserProfile,
+} from "./types";
 
 const PROFILE_CACHE_TTL = 120; // 2 minutes
 
@@ -78,11 +85,18 @@ export async function extractProfile(
   return profileObject;
 }
 
-export async function handlePersonasWebhook(request: Request, env: Env) {
-  let event: { [key: string]: any } = await request.json();
+export const handlePersonasWebhook: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  let event = (await request.json()) as PersonasWebhookPayload;
 
   if (event.type !== "identify") {
-    return new Response("", { status: 200 });
+    context.logger.log("debug", "Ignoring incoming webhook, not an identify", {
+      event,
+    });
+    return [request, new Response("", { status: 200 }), context];
   }
 
   const {
@@ -91,28 +105,36 @@ export async function handlePersonasWebhook(request: Request, env: Env) {
     context: { personas: personas },
   } = event;
 
+  if (personas.computation_class !== "audience") {
+    context.logger.log("debug", "Ignoring incoming webhook, not an audience", {
+      event,
+    });
+    return [request, new Response("", { status: 200 }), context];
+  }
+
+  context.logger.log("debug", "Accepting incoming webhook", { event });
   const profile_index = `${userId}`;
+  const rawProfileData = await context.env.Profiles.get(profile_index);
+  const profileData: UserProfile = rawProfileData
+    ? JSON.parse(rawProfileData)
+    : {};
 
-  const rawProfileData = await env.Profiles.get(profile_index);
-  const profileData = rawProfileData ? JSON.parse(rawProfileData) : {};
+  const updatedProfile = {
+    ...profileData,
+    ...traits,
+  };
 
-  delete traits.user_id;
-  const updatedProfile =
-    personas.computation_class === "audience"
-      ? {
-          ...profileData,
-          audiences: { ...(profileData.audiences || {}), ...traits },
-        }
-      : {
-          ...profileData,
-          traits: { ...(profileData.traits || {}), ...traits },
-        };
+  await context.env.Profiles.put(profile_index, JSON.stringify(updatedProfile));
+  context.logger.log("debug", `${personas.computation_class} updated`);
 
-  await env.Profiles.put(profile_index, JSON.stringify(updatedProfile));
-  return new Response(`${personas.computation_class} updated`, {
-    status: 200,
-  });
-}
+  return [
+    request,
+    new Response(`${personas.computation_class} updated`, {
+      status: 200,
+    }),
+    context,
+  ];
+};
 
 export const handleProfile: HandlerFunction = async function (
   request,

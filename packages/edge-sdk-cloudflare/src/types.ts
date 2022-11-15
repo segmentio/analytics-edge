@@ -65,3 +65,20 @@ export interface EdgeSDKFeatures {
 export type VariationEvaluationFunction = (
   audiences: Record<string, boolean>
 ) => string | undefined;
+
+export type UserProfile = Record<string, any>;
+
+export interface PersonasWebhookPayload {
+  type: "identify" | "track";
+  userId: string;
+  traits: Record<string, any>;
+  context: {
+    personas: {
+      computation_class: "audience" | "computed_trait";
+      computation_id: string;
+      computation_key: string;
+      namespace: string;
+      space_id: string;
+    };
+  };
+}
