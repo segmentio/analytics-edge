@@ -22,7 +22,7 @@ import {
   handleProfile,
 } from "./personas";
 import {
-  enrichAssetWithAJSCalls,
+  appendAJSCustomConfiguration,
   handleAJS,
   handleBundles,
   handleSettings,
@@ -138,7 +138,7 @@ export class Segment {
       handleAJS,
       enrichResponseWithIdCookies,
       handleClientSideTraits,
-      enrichAssetWithAJSCalls
+      appendAJSCustomConfiguration
     );
 
     router.register("settings", handleSettings);

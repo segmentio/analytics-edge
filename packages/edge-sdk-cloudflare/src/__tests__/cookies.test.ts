@@ -1,5 +1,5 @@
 import {
-  enrichAssetWithAJSCalls,
+  appendAJSCustomConfiguration,
   handleAJS,
   handleBundles,
   handleSettings,

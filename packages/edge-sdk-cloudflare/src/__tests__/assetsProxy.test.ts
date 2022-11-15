@@ -1,5 +1,5 @@
 import {
-  enrichAssetWithAJSCalls,
+  appendAJSCustomConfiguration,
   handleAJS,
   handleBundles,
   handleSettings,
@@ -79,7 +79,7 @@ describe("asset proxy", () => {
   });
 
   it("Enrich with identity calls", async () => {
-    const [req, resp, context] = await enrichAssetWithAJSCalls(
+    const [req, resp, context] = await appendAJSCustomConfiguration(
       new Request("https://doest-not-matter.com"),
       new Response("💾"),
       {

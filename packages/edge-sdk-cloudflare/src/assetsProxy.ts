@@ -7,6 +7,31 @@ export const handleAJS: HandlerFunction = async (request, response, ctx) => {
   return [request, resp, ctx];
 };
 
+// Proxy Settings
+export const handleSettings: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.settings.writeKey}/settings`;
+  const resp = await fetch(url);
+  return [request, resp, ctx];
+};
+
+// Proxy Bundles
+export const handleBundles: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  const url = new URL(request.url);
+  const path = url.pathname.replace(`/${ctx.settings.routePrefix}/`, "/");
+  const target = `${ctx.settings.baseSegmentCDN}${path}`;
+  const resp = await fetch(target);
+  return [request, resp, ctx];
+};
+
+// Injects the custom AJS calls (to configure identity/traits into the AJS bundle)
 export const enrichAssetWithAJSCalls: HandlerFunction = async (
   request,
   response,
@@ -37,30 +62,6 @@ export const enrichAssetWithAJSCalls: HandlerFunction = async (
     ${content}`;
 
   return [request, new Response(body, { ...response }), ctx];
-};
-
-// Proxy Settings
-export const handleSettings: HandlerFunction = async (
-  request,
-  response,
-  ctx
-) => {
-  const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.settings.writeKey}/settings`;
-  const resp = await fetch(url);
-  return [request, resp, ctx];
-};
-
-// Proxy Bundles
-export const handleBundles: HandlerFunction = async (
-  request,
-  response,
-  ctx
-) => {
-  const url = new URL(request.url);
-  const path = url.pathname.replace(`/${ctx.settings.routePrefix}/`, "/");
-  const target = `${ctx.settings.baseSegmentCDN}${path}`;
-  const resp = await fetch(target);
-  return [request, resp, ctx];
 };
 
 export const redactWritekey: HandlerFunction = async (
