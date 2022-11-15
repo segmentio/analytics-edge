@@ -33,10 +33,7 @@ describe("origin handler", () => {
     });
     expect(globalThis.fetch).toBeCalledWith(
       "https://api.segment.io/v1/p",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({ type: "page" }),
-      })
+      request
     );
     expect(resp?.status).toBe(200);
   });

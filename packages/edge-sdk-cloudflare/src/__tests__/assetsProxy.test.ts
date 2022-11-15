@@ -49,12 +49,12 @@ describe("asset proxy", () => {
       {
         ...mockContext,
         params: {
-          writeKey: "abc",
+          writeKey: "abc", // this shouldn't matter
         },
       }
     );
     expect(globalThis.fetch).toBeCalledWith(
-      "https://cdn.segment.com/v1/projects/abc/settings"
+      "https://cdn.segment.com/v1/projects/THIS_IS_A_WRITE_KEY/settings"
     );
     expect(resp?.status).toBe(200);
   });
