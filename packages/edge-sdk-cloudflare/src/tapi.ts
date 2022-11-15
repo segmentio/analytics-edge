@@ -45,15 +45,36 @@ export const handleTAPI: HandlerFunction = async (
   const url = new URL(request.url);
   const parts = url.pathname.split("/");
   const method = parts.pop();
-  let body: { [key: string]: any } = await request.json();
+  // let body: { [key: string]: any } = await request.json();
 
-  const init: RequestInit = {
-    method: "POST",
-    headers: request.headers,
-    body: JSON.stringify(body),
-  };
-
-  const resp = await fetch(`https://api.segment.io/v1/${method}`, init);
+  const resp = await fetch(`https://api.segment.io/v1/${method}`, request);
 
   return [request, resp, context];
+};
+
+export const injectWritekey: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  // grab body and method from request
+  let body: { [key: string]: any } = await request.json();
+
+  // discard the redacted writekey and include the real one in the headers
+  const headers = new Headers(request.headers);
+  headers.append(
+    "Authorization",
+    `Basic ${btoa(`${context.settings.writeKey}:`)}`
+  );
+  delete body.writeKey;
+
+  // create a new request
+  const init: RequestInit = {
+    method: request.method,
+    headers,
+    body: JSON.stringify(body),
+    cf: request.cf as RequestInitCfProperties,
+  };
+
+  return [new Request(request.url, init), response, context];
 };

@@ -29,6 +29,13 @@ export default {
       return audiences.vancouver_crew ? "/van" : "/sf";
     });
 
+    segment.clientSideTraits((traits) => {
+      return {
+        test_trait: true,
+        another_trait: "hello",
+      };
+    });
+
     const resp = await segment.handleEvent(request, env);
 
     //@ts-ignore

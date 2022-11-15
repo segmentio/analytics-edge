@@ -7,20 +7,10 @@ class ElementHandler {
   host: string;
   writeKey: string;
   routePrefix: string;
-  anonymousId: string;
-  traits: string;
-  constructor(
-    host: string,
-    writeKey: string,
-    routePrefix: string,
-    anonymousId: string,
-    traits: string
-  ) {
+  constructor(host: string, writeKey: string, routePrefix: string) {
     this.host = host;
-    this.writeKey = writeKey;
+    this.writeKey = "REDACTED";
     this.routePrefix = routePrefix;
-    this.anonymousId = anonymousId;
-    this.traits = traits;
   }
 
   element(element: Element) {
@@ -38,8 +28,7 @@ class ElementHandler {
           integrations: {
             "Segment.io": {apiHost: "${this.host}/${this.routePrefix}/evs"}
           }
-        });
-        analytics.identify(${this.traits})`
+        });`
       );
     element.append(`<script>${snip}</script>`, { html: true });
   }
@@ -54,9 +43,6 @@ export const enrichWithAJS: HandlerFunction = async (
     return Promise.reject("No response");
   }
   const {
-    anonymousId,
-    traits,
-    clientSideTraits,
     settings: { writeKey, routePrefix },
   } = context;
   const host = request.headers.get("host") || "";
@@ -64,16 +50,7 @@ export const enrichWithAJS: HandlerFunction = async (
   return [
     request,
     new HTMLRewriter()
-      .on(
-        "head",
-        new ElementHandler(
-          host,
-          writeKey,
-          routePrefix,
-          anonymousId || "",
-          JSON.stringify(clientSideTraits)
-        )
-      )
+      .on("head", new ElementHandler(host, writeKey, routePrefix))
       .transform(response),
     context,
   ];

@@ -54,10 +54,12 @@ export interface EdgeSDKSettings {
 }
 
 export interface EdgeSDKFeatures {
-  edgeTraitEnrichment?: boolean;
+  edgeContext?: boolean;
   edgeVariations?: boolean;
   ajsInjection?: boolean;
   serverSideCookies?: boolean;
+  redactWritekey?: boolean;
+  clientSideTraits?: boolean;
 }
 
 export type VariationEvaluationFunction = (

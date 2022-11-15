@@ -16,13 +16,19 @@ export const enrichAssetWithAJSCalls: HandlerFunction = async (
     return [request, response, ctx];
   }
 
-  const { userId, anonymousId } = ctx;
+  const { userId, anonymousId, clientSideTraits } = ctx;
 
   const anonymousCall = `${
     anonymousId ? `analytics.setAnonymousId("${anonymousId}");` : ""
   }`;
 
-  const idCall = `${userId ? `analytics.identify("${userId}");` : ""}`;
+  const idCall = `${
+    userId && clientSideTraits
+      ? `analytics.identify("${userId}", ${JSON.stringify(clientSideTraits)});`
+      : userId
+      ? `analytics.identify("${userId}");`
+      : ""
+  }`;
 
   const content = await response.text();
   const body = `
@@ -30,13 +36,7 @@ export const enrichAssetWithAJSCalls: HandlerFunction = async (
     ${idCall}
     ${content}`;
 
-  const init = {
-    headers: response?.headers,
-    status: response?.status,
-    statusText: response?.statusText,
-  };
-
-  return [request, new Response(body, init), ctx];
+  return [request, new Response(body, { ...response }), ctx];
 };
 
 // Proxy Settings
@@ -45,7 +45,7 @@ export const handleSettings: HandlerFunction = async (
   response,
   ctx
 ) => {
-  const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.params.writeKey}/settings`;
+  const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.settings.writeKey}/settings`;
   const resp = await fetch(url);
   return [request, resp, ctx];
 };
@@ -61,4 +61,18 @@ export const handleBundles: HandlerFunction = async (
   const target = `${ctx.settings.baseSegmentCDN}${path}`;
   const resp = await fetch(target);
   return [request, resp, ctx];
+};
+
+export const redactWritekey: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  if (!response) {
+    return [request, response, ctx];
+  }
+
+  const content = await response.text();
+  const body = content.replace(ctx.settings.writeKey, "REDACTED");
+  return [request, new Response(body, { ...response }), ctx];
 };

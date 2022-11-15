@@ -16,8 +16,6 @@ An example is provided in `examples/cloudflare_example`. Note that the SDK requi
 
 ```
     Profiles
-    EdgeFunctions
-    SourceFunctions
 ```
 
 Also, it requires Env.dispatcher ( a feature of Platform Workers ) to be available.
