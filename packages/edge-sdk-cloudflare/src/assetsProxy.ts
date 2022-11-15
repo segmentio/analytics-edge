@@ -32,7 +32,7 @@ export const handleBundles: HandlerFunction = async (
 };
 
 // Injects the custom AJS calls (to configure identity/traits into the AJS bundle)
-export const enrichAssetWithAJSCalls: HandlerFunction = async (
+export const appendAJSCustomConfiguration: HandlerFunction = async (
   request,
   response,
   ctx

@@ -9,6 +9,10 @@ export const handleOrigin: HandlerFunction = async (request, response, ctx) => {
   }
 };
 
+/* doesn't run the normal chain of handlers for requests to the origin unless:
+ * 1- thre is a variation defined on the route or
+ * 2- the content is HTML
+ */
 export const handleOriginWithEarlyExit: HandlerFunction = async (
   request,
   response,
