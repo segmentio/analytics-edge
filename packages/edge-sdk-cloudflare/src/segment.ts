@@ -15,11 +15,11 @@ import {
 } from "./cookies";
 import { enrichWithAJS } from "./parser";
 import {
-  extractProfile,
   handleVariations,
   handleClientSideTraits,
   handlePersonasWebhook,
-  handleProfile,
+  extractProfileFromEdge,
+  extractProfileFromSegment,
 } from "./personas";
 import {
   appendAJSCustomConfiguration,
@@ -39,12 +39,15 @@ const sdkDefaultSettings = {
   logLevels: ["error", "warn", "info", "debug"] as LogLevel[],
 };
 
-const sdkDefaultFeatures = {
+const sdkDefaultFeatures: EdgeSDKFeatures = {
   edgeContext: true,
   edgeVariations: true,
   ajsInjection: true,
   serverSideCookies: true,
   redactWritekey: true,
+  clientSideTraits: true,
+  engageIncomingWebhook: true,
+  useProfilesAPI: true,
 };
 
 export class Segment {
@@ -128,27 +131,33 @@ export class Segment {
     const host = request.headers.get("host") || ""; // can this be null?
     const router = this.router;
 
+    // bundles/destinations handlers
     router.register("bundles", handleBundles);
     router.register("destinations", handleBundles);
 
-    router.register(
-      "ajs",
-      extractIdFromCookie,
-      handleProfile,
-      handleAJS,
-      enrichResponseWithIdCookies,
-      handleClientSideTraits,
-      appendAJSCustomConfiguration
-    );
+    // AJS handlers
+    (this.features.serverSideCookies || this.features.clientSideTraits) &&
+      router.register("ajs", extractIdFromCookie);
+    this.features.clientSideTraits &&
+      router.register("ajs", extractProfileFromEdge);
+    this.features.clientSideTraits &&
+      this.features.useProfilesAPI &&
+      router.register("ajs", extractProfileFromSegment);
+    router.register("ajs", handleAJS);
+    this.features.serverSideCookies &&
+      router.register("ajs", enrichResponseWithIdCookies);
+    this.features.clientSideTraits &&
+      router.register("ajs", handleClientSideTraits);
+    (this.features.serverSideCookies || this.features.clientSideTraits) &&
+      router.register("ajs", appendAJSCustomConfiguration);
+    this.features.redactWritekey && router.register("ajs", redactWritekey);
 
+    // settings handlers
     router.register("settings", handleSettings);
+    this.features.redactWritekey && router.register("settings", redactWritekey);
 
-    if (this.features.redactWritekey) {
-      router.register("ajs", redactWritekey);
-      router.register("settings", redactWritekey);
-      router.register("tapi", injectWritekey);
-    }
-
+    // TAPI handlers
+    this.features.redactWritekey && router.register("tapi", injectWritekey);
     router.register("tapi", extractIdFromCookie, extractIdFromPayload);
     this.features.edgeContext &&
       router.register("tapi", includeEdgeTraitsInContext);
@@ -159,8 +168,16 @@ export class Segment {
     (this.features.serverSideCookies || this.features.edgeVariations) &&
       router.register("root", extractIdFromCookie);
 
-    this.features.edgeVariations &&
-      router.register("root", handleProfile, handleVariations);
+    if (this.features.edgeVariations) {
+      this.features.useProfilesAPI
+        ? router.register(
+            "root",
+            extractProfileFromEdge,
+            extractProfileFromSegment,
+            handleVariations
+          )
+        : router.register("root", extractProfileFromEdge, handleVariations);
+    }
 
     router.register("root", handleOrigin);
 
@@ -169,7 +186,10 @@ export class Segment {
 
     this.features.ajsInjection && router.register("root", enrichWithAJS);
 
-    router.register("personas", handlePersonasWebhook);
+    // engage incoming webhook handler
+    if (this.features.engageIncomingWebhook) {
+      router.register("personas", handlePersonasWebhook);
+    }
 
     router.register("bypass", handleOrigin);
     const [_, resp, __] = await this.router.handle(request);

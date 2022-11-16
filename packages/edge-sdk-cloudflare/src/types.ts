@@ -60,6 +60,8 @@ export interface EdgeSDKFeatures {
   serverSideCookies?: boolean;
   redactWritekey?: boolean;
   clientSideTraits?: boolean;
+  engageIncomingWebhook?: boolean;
+  useProfilesAPI?: boolean;
 }
 
 export type VariationEvaluationFunction = (
@@ -67,6 +69,7 @@ export type VariationEvaluationFunction = (
 ) => string | undefined;
 
 export type UserProfile = Record<string, any>;
+export type UserProfileIndex = `user_id:${string}`;
 
 export interface PersonasWebhookPayload {
   type: "identify" | "track";
@@ -81,4 +84,8 @@ export interface PersonasWebhookPayload {
       space_id: string;
     };
   };
+}
+
+export interface ProfileAPIPayload {
+  traits: Record<string, any>;
 }

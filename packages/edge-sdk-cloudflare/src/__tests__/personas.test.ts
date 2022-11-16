@@ -1,5 +1,5 @@
 import { handleOrigin, handleOriginWithEarlyExit } from "../origin";
-import { handleProfile } from "../personas";
+import { extractProfileFromEdge, extractProfileFromSegment } from "../personas";
 import { Router } from "../router";
 import { Segment } from "../segment";
 import { Env } from "../types";
@@ -37,52 +37,48 @@ describe("personas handler", () => {
   });
 
   it("handle profile gets traits from the KV", async () => {
-    const request = new Request("https://originhandler.com/", {
-      headers: { cookie: "ajs_user_id=abc" },
-    });
-    const audiences = { cool_people: true };
-    jest.spyOn(mockContext.env.Profiles, "get").mockImplementationOnce(() => {
-      return Promise.resolve(JSON.stringify(audiences));
-    });
-
-    const [req, resp, context] = await handleProfile(
-      request,
-      undefined,
-      mockContext
-    );
-
-    expect(context?.traits).toEqual(audiences);
-  });
-
-  it("handle profile return empty traits object if no id cookie found", async () => {
     const request = new Request("https://originhandler.com/");
     const audiences = { cool_people: true };
     jest.spyOn(mockContext.env.Profiles, "get").mockImplementationOnce(() => {
       return Promise.resolve(JSON.stringify(audiences));
     });
 
-    const [req, resp, context] = await handleProfile(
+    const [req, resp, context] = await extractProfileFromEdge(
+      request,
+      undefined,
+      { ...mockContext, userId: "1234" }
+    );
+
+    expect(context?.traits).toEqual(audiences);
+  });
+
+  it("extractProfileFromEdge return undefined object if identity is found", async () => {
+    const request = new Request("https://originhandler.com/");
+    const audiences = { cool_people: true };
+    jest.spyOn(mockContext.env.Profiles, "get").mockImplementationOnce(() => {
+      return Promise.resolve(JSON.stringify(audiences));
+    });
+
+    const [req, resp, context] = await extractProfileFromEdge(
       request,
       undefined,
       mockContext
     );
 
-    expect(context?.traits).toEqual({});
+    expect(context?.traits).toBeUndefined();
   });
 
-  it("handle profile queries personas profile if data is not in KV and saves results in KV", async () => {
-    const request = new Request("https://originhandler.com/", {
-      headers: { cookie: "ajs_user_id=abc" },
-    });
+  it("handle profile queries personas profile ", async () => {
+    const request = new Request("https://originhandler.com/");
     const audiences = { cool_people: true };
     jest.spyOn(mockContext.env.Profiles, "put").mockImplementationOnce(() => {
       return Promise.resolve(undefined);
     });
 
-    const [req, resp, context] = await handleProfile(
+    const [req, resp, context] = await extractProfileFromSegment(
       request,
       undefined,
-      mockContext
+      { ...mockContext, userId: "abc" }
     );
     expect(globalThis.fetch).toBeCalledWith(
       "https://profiles.segment.com/v1/spaces/test/collections/users/profiles/user_id:abc/traits?limit=200&class=audience",

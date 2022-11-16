@@ -4,86 +4,14 @@ import {
   Env,
   HandlerFunction,
   PersonasWebhookPayload,
+  ProfileAPIPayload,
   Storage,
   UserIdentity,
   UserProfile,
+  UserProfileIndex,
 } from "./types";
 
 const PROFILE_CACHE_TTL = 120; // 2 minutes
-
-export async function extractProfile(
-  request: Request,
-  profilesStore: Storage,
-  userIdentity: UserIdentity,
-  personasSpaceId: string | undefined,
-  personasToken: string | undefined,
-  logger: Logger
-): Promise<{ [key: string]: any }> {
-  const { anonymousId, userId } = userIdentity;
-
-  logger.log("debug", "Extracting user profile from edge storage", {
-    anonymousId,
-    userId,
-  });
-
-  // for now we only support fetching profiles by userId, in the future
-  // we can expand to all externalIds supported by personas
-  if (!userId) {
-    return {};
-  }
-
-  const profile_index = `user_id:${userId}`;
-
-  const profileData = await profilesStore.get(profile_index);
-  if (profileData) {
-    return JSON.parse(profileData);
-  }
-
-  logger.log("debug", "Profile wasn't found on Edge", {
-    anonymousId,
-    userId,
-  });
-
-  let profileObject = {};
-
-  if (personasToken && personasSpaceId) {
-    logger.log("debug", "Querying Profiles API", {
-      anonymousId,
-      userId,
-    });
-
-    try {
-      // for now we only query audiences, in the future we can expand to all traits
-      const data = await fetch(
-        `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits?limit=200&class=audience`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: "Basic " + btoa(`${personasToken}:`),
-          },
-        }
-      );
-
-      if (data.status === 200) {
-        const dataJson = (await data.json()) as {
-          traits: { [key: string]: any };
-        };
-        profileObject = dataJson?.traits;
-
-        await profilesStore.put(profile_index, JSON.stringify(profileObject), {
-          expirationTtl: PROFILE_CACHE_TTL,
-        });
-      }
-    } catch (e) {
-      logger.log("error", "Error querying Profiles API", {
-        anonymousId,
-        userId,
-        error: e,
-      });
-    }
-  }
-  return profileObject;
-}
 
 export const handlePersonasWebhook: HandlerFunction = async (
   request,
@@ -136,28 +64,6 @@ export const handlePersonasWebhook: HandlerFunction = async (
   ];
 };
 
-export const handleProfile: HandlerFunction = async function (
-  request,
-  response,
-  context
-) {
-  const profileObject = await extractProfile(
-    request,
-    context.env.Profiles,
-    {
-      userId: getCookie(request, "ajs_user_id"),
-      anonymousId: getCookie(request, "ajs_anonymous_id"),
-    },
-    context.settings.personasSpaceId,
-    context.settings.personasToken,
-    context.logger
-  );
-
-  const traits = profileObject;
-
-  return [request, response, { ...context, traits }];
-};
-
 export const handleVariations: HandlerFunction = async function (
   request,
   response,
@@ -203,4 +109,92 @@ export const handleClientSideTraits: HandlerFunction = async function (
   } else {
     return [request, response, context];
   }
+};
+
+export const extractProfileFromEdge: HandlerFunction = async function (
+  request,
+  response,
+  context
+) {
+  const userId = context.userId;
+
+  context.logger.log("debug", "Extracting user profile from edge storage", {
+    userId,
+  });
+
+  // for now we only support fetching profiles by userId, in the future
+  // we can expand to all externalIds supported by personas
+  if (!userId) {
+    return [request, response, context];
+  }
+
+  const profile_index: UserProfileIndex = `user_id:${userId}`;
+
+  const profileData = await context.env.Profiles.get(profile_index);
+  if (profileData) {
+    return [request, response, { ...context, traits: JSON.parse(profileData) }];
+  }
+
+  context.logger.log("debug", "Profile wasn't found on Edge", {
+    userId,
+  });
+
+  return [request, response, context];
+};
+
+export const extractProfileFromSegment: HandlerFunction = async function (
+  request,
+  response,
+  context
+) {
+  const {
+    settings: { personasSpaceId, personasToken },
+    userId,
+  } = context;
+
+  // ignore if traits are already in the context
+  if (!userId || !personasSpaceId || !personasToken || context.traits) {
+    return [request, response, context];
+  }
+
+  context.logger.log("debug", "Extracting user profile from profiles API", {
+    userId,
+  });
+
+  const profile_index: UserProfileIndex = `user_id:${userId}`;
+
+  try {
+    // for now we only query audiences, in the future we can expand to all traits
+    const data = await fetch(
+      `https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/${profile_index}/traits?limit=200&class=audience`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Basic " + btoa(`${personasToken}:`),
+        },
+      }
+    );
+
+    if (data.status === 200) {
+      const profilesResponse = (await data.json()) as ProfileAPIPayload;
+      const profileObject = profilesResponse?.traits;
+
+      await context.env.Profiles.put(
+        profile_index,
+        JSON.stringify(profileObject),
+        {
+          expirationTtl: PROFILE_CACHE_TTL,
+        }
+      );
+
+      return [request, response, { ...context, traits: profileObject }];
+    }
+  } catch (e) {
+    context.logger.log("error", "Error querying Profiles API", {
+      userId,
+      error: e,
+    });
+  }
+
+  return [request, response, context];
 };
