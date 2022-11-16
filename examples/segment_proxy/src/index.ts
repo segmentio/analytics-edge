@@ -15,7 +15,6 @@ export default {
       {
         writeKey: env.SEGMENT_WRITE_KEY,
         routePrefix: "magic",
-        collectEdgeData: true,
       },
       env,
       {

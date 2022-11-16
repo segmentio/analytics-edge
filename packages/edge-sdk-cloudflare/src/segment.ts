@@ -38,7 +38,6 @@ import { Logger, LogLevel } from "./logger";
 
 const sdkDefaultSettings = {
   routePrefix: "seg",
-  collectEdgeData: true,
   baseSegmentCDN: "https://cdn.segment.com",
   logLevels: ["error", "warn", "info", "debug"] as LogLevel[],
 };
@@ -58,7 +57,6 @@ const sdkDefaultFeatures: EdgeSDKFeatures = {
 export class Segment {
   private writeKey: string;
   private routePrefix: string;
-  private collectEdgeData: boolean;
   private personasSpaceId: string | undefined;
   private personasToken: string | undefined;
   private _env: Env;
@@ -76,7 +74,6 @@ export class Segment {
     return {
       writeKey: this.writeKey,
       routePrefix: this.routePrefix,
-      collectEdgeData: this.collectEdgeData,
       personasSpaceId: this.personasSpaceId,
       personasToken: this.personasToken,
       baseSegmentCDN: this.baseSegmentCDN,
@@ -103,7 +100,6 @@ export class Segment {
     const {
       writeKey,
       routePrefix,
-      collectEdgeData,
       personasSpaceId,
       personasToken,
       baseSegmentCDN,
@@ -114,7 +110,6 @@ export class Segment {
     };
     this.writeKey = writeKey;
     this.routePrefix = routePrefix;
-    this.collectEdgeData = collectEdgeData;
     this.personasSpaceId = personasSpaceId;
     this.personasToken = personasToken;
     this.baseSegmentCDN = baseSegmentCDN;

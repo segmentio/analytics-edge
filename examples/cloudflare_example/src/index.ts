@@ -16,7 +16,6 @@ export default {
         personasSpaceId: env.PERSONAS_SPACE_ID,
         routePrefix: "wut",
         personasToken: env.PERSONAS_TOKEN,
-        collectEdgeData: true,
       },
       env,
       {}

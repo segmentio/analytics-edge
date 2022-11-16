@@ -47,7 +47,6 @@ export interface EdgeSDKSettings {
   personasToken?: string;
   routePrefix: string;
   writeKey: string;
-  collectEdgeData?: boolean;
   baseSegmentCDN?: string;
 }
 
