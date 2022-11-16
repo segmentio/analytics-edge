@@ -2,7 +2,7 @@ import { Segment } from "./segment";
 import { RouterContext, Env, HandlerFunction } from "./types";
 
 interface Route {
-  route: string;
+  route: EdgeSDKKnownRoutes;
   params:
     | {
         [key: string]: string;
@@ -11,10 +11,19 @@ interface Route {
 }
 
 type Method = "get" | "post" | "put" | "delete" | "patch";
+export type EdgeSDKKnownRoutes =
+  | "settings"
+  | "bundles"
+  | "destinations"
+  | "tapi"
+  | "personas"
+  | "root"
+  | "ajs"
+  | "bypass";
 
 export class Router {
   routePrefix: string;
-  routes: [Method, string, RegExp][];
+  routes: [Method, EdgeSDKKnownRoutes, RegExp][];
   handlers: {
     [key: string]: HandlerFunction[];
   };
@@ -29,13 +38,12 @@ export class Router {
 
   private generateRouteMatcher(
     routePrefix: string
-  ): [Method, string, RegExp][] {
-    const rawRoutes: [Method, string, string][] = [
+  ): [Method, EdgeSDKKnownRoutes, RegExp][] {
+    const rawRoutes: [Method, EdgeSDKKnownRoutes, string][] = [
       ["get", "settings", `${routePrefix}/v1/projects/:writeKey/settings`],
       ["get", "bundles", `${routePrefix}/analytics-next/bundles/:bundleName`],
       ["get", "destinations", `${routePrefix}/next-integrations/*`],
       ["post", "tapi", `${routePrefix}/evs/:method`],
-      ["get", "source-function", `${routePrefix}/sf/:function`],
       ["post", "personas", `${routePrefix}/personas`],
       ["get", "ajs", `${routePrefix}/ajs/:hash`],
       ["get", "root", `*`],
@@ -72,11 +80,17 @@ export class Router {
     return { route: "bypass", params: undefined };
   }
 
-  register(route: string, ...handlers: HandlerFunction[]) {
+  register(route: EdgeSDKKnownRoutes, ...handlers: HandlerFunction[]) {
     if (!this.handlers[route]) {
       this.handlers[route] = [];
     }
     this.handlers[route].push(...handlers);
+
+    return {
+      handler: (handler: HandlerFunction, condition: boolean = true) => {
+        return condition ? this.register(route, handler) : this.register(route);
+      },
+    };
   }
 
   async handle(

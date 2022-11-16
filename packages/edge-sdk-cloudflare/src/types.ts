@@ -2,9 +2,7 @@ import { Logger } from "./logger";
 import { Segment } from "./segment";
 
 export interface Env {
-  Profiles: KVNamespace;
-  EdgeFunctions: KVNamespace;
-  dispatcher: { [key: string]: any };
+  Profiles?: KVNamespace;
 }
 
 export interface Storage {
@@ -54,14 +52,15 @@ export interface EdgeSDKSettings {
 }
 
 export interface EdgeSDKFeatures {
-  edgeContext?: boolean;
-  edgeVariations?: boolean;
-  ajsInjection?: boolean;
-  serverSideCookies?: boolean;
-  redactWritekey?: boolean;
-  clientSideTraits?: boolean;
-  engageIncomingWebhook?: boolean;
-  useProfilesAPI?: boolean;
+  edgeContext: boolean;
+  edgeVariations: boolean;
+  ajsInjection: boolean;
+  proxyOrigin: boolean;
+  serverSideCookies: boolean;
+  redactWritekey: boolean;
+  clientSideTraits: boolean;
+  engageIncomingWebhook: boolean;
+  useProfilesAPI: boolean;
 }
 
 export type VariationEvaluationFunction = (

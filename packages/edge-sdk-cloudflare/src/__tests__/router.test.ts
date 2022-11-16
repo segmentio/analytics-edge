@@ -1,16 +1,18 @@
-import { Router } from "../router";
+import { EdgeSDKKnownRoutes, Router } from "../router";
 import { Segment } from "../segment";
 import { Env } from "../types";
 import { mockContext } from "./mocks";
 
 describe("router", () => {
-  const router = new Router("seg", mockContext);
+  let router = new Router("seg", mockContext);
   const handler = jest
     .fn()
     .mockImplementation(() => Promise.resolve([{}, {}, {}]));
 
-  beforeAll(() => {
-    const routes = [
+  beforeEach(() => {
+    router = new Router("seg", mockContext);
+
+    const routes: EdgeSDKKnownRoutes[] = [
       "ajs",
       "settings",
       "bundles",
@@ -167,5 +169,30 @@ describe("router", () => {
     } catch (e) {
       expect(e).toBe("No handlers for route");
     }
+  });
+
+  it("supports chaining of handlers", async () => {
+    const handlerA = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve([{ url: "abc" }, { url: "abc" }, { data: "abc" }])
+      );
+
+    const handlerB = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([{}, {}, {}]));
+
+    router.register("root").handler(handlerA).handler(handlerB);
+    const request = new Request("https://🍣.com/sashimi/salmon");
+    await router.handle(request);
+
+    // output from default handler in beforeAll is {} {} {}
+    expect(handlerA).toHaveBeenCalledWith({}, {}, {});
+
+    expect(handlerB).toHaveBeenCalledWith(
+      { url: "abc" },
+      { url: "abc" },
+      { data: "abc" }
+    );
   });
 });

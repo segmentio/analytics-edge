@@ -36,3 +36,17 @@ export const handleOriginWithEarlyExit: HandlerFunction = async (
     }
   }
 };
+
+export const handleWith404: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  return [
+    request,
+    new Response("Not Found", {
+      status: 404,
+    }),
+    ctx,
+  ];
+};

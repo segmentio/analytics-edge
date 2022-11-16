@@ -29,7 +29,11 @@ import {
   redactWritekey,
 } from "./assetsProxy";
 import { handleTAPI, includeEdgeTraitsInContext, injectWritekey } from "./tapi";
-import { handleOrigin, handleOriginWithEarlyExit } from "./origin";
+import {
+  handleOrigin,
+  handleOriginWithEarlyExit,
+  handleWith404,
+} from "./origin";
 import { Logger, LogLevel } from "./logger";
 
 const sdkDefaultSettings = {
@@ -48,6 +52,7 @@ const sdkDefaultFeatures: EdgeSDKFeatures = {
   clientSideTraits: true,
   engageIncomingWebhook: true,
   useProfilesAPI: true,
+  proxyOrigin: true,
 };
 
 export class Segment {
@@ -90,7 +95,11 @@ export class Segment {
     return this._traitsFunc;
   }
 
-  constructor(settings: EdgeSDKSettings, env: Env, features: EdgeSDKFeatures) {
+  constructor(
+    settings: EdgeSDKSettings,
+    env: Env,
+    features: Partial<EdgeSDKFeatures>
+  ) {
     const {
       writeKey,
       routePrefix,
@@ -123,76 +132,78 @@ export class Segment {
     this.features = { ...sdkDefaultFeatures, ...features };
   }
 
-  private setupRoutes() {
-    return null;
-  }
-
   async handleEvent(request: Request, env: Env) {
-    const host = request.headers.get("host") || ""; // can this be null?
     const router = this.router;
+    const features = this.features;
 
     // bundles/destinations handlers
     router.register("bundles", handleBundles);
     router.register("destinations", handleBundles);
 
     // AJS handlers
-    (this.features.serverSideCookies || this.features.clientSideTraits) &&
-      router.register("ajs", extractIdFromCookie);
-    this.features.clientSideTraits &&
-      router.register("ajs", extractProfileFromEdge);
-    this.features.clientSideTraits &&
-      this.features.useProfilesAPI &&
-      router.register("ajs", extractProfileFromSegment);
-    router.register("ajs", handleAJS);
-    this.features.serverSideCookies &&
-      router.register("ajs", enrichResponseWithIdCookies);
-    this.features.clientSideTraits &&
-      router.register("ajs", handleClientSideTraits);
-    (this.features.serverSideCookies || this.features.clientSideTraits) &&
-      router.register("ajs", appendAJSCustomConfiguration);
-    this.features.redactWritekey && router.register("ajs", redactWritekey);
+    this.router
+      .register("ajs")
+      .handler(
+        extractIdFromCookie,
+        features.serverSideCookies || features.clientSideTraits
+      )
+      .handler(extractProfileFromEdge, features.clientSideTraits)
+      .handler(
+        extractProfileFromEdge,
+        features.useProfilesAPI && features.clientSideTraits
+      )
+      .handler(handleAJS)
+      .handler(enrichResponseWithIdCookies, features.serverSideCookies)
+      .handler(handleClientSideTraits, features.clientSideTraits)
+      .handler(
+        appendAJSCustomConfiguration,
+        features.serverSideCookies || features.clientSideTraits
+      )
+      .handler(redactWritekey, features.redactWritekey);
 
     // settings handlers
-    router.register("settings", handleSettings);
-    this.features.redactWritekey && router.register("settings", redactWritekey);
+    router
+      .register("settings")
+      .handler(handleSettings)
+      .handler(redactWritekey, features.redactWritekey);
 
     // TAPI handlers
-    this.features.redactWritekey && router.register("tapi", injectWritekey);
-    router.register("tapi", extractIdFromCookie, extractIdFromPayload);
-    this.features.edgeContext &&
-      router.register("tapi", includeEdgeTraitsInContext);
-    router.register("tapi", handleTAPI, enrichResponseWithIdCookies);
+    router
+      .register("tapi")
+      .handler(injectWritekey, features.redactWritekey)
+      .handler(extractIdFromCookie)
+      .handler(extractIdFromPayload)
+      .handler(includeEdgeTraitsInContext, features.edgeContext)
+      .handler(handleTAPI)
+      .handler(enrichResponseWithIdCookies);
 
     // root handler logic
-    router.register("root", handleOriginWithEarlyExit);
-    (this.features.serverSideCookies || this.features.edgeVariations) &&
-      router.register("root", extractIdFromCookie);
-
-    if (this.features.edgeVariations) {
-      this.features.useProfilesAPI
-        ? router.register(
-            "root",
-            extractProfileFromEdge,
-            extractProfileFromSegment,
-            handleVariations
+    features.proxyOrigin
+      ? router
+          .register("root")
+          .handler(handleOriginWithEarlyExit)
+          .handler(
+            extractIdFromCookie,
+            features.serverSideCookies || features.edgeVariations
           )
-        : router.register("root", extractProfileFromEdge, handleVariations);
-    }
-
-    router.register("root", handleOrigin);
-
-    this.features.serverSideCookies &&
-      router.register("root", enrichResponseWithIdCookies);
-
-    this.features.ajsInjection && router.register("root", enrichWithAJS);
+          .handler(extractProfileFromEdge, features.edgeVariations)
+          .handler(
+            extractProfileFromSegment,
+            features.edgeVariations && features.useProfilesAPI
+          )
+          .handler(handleVariations, features.edgeVariations)
+          .handler(handleOrigin)
+          .handler(enrichResponseWithIdCookies, features.serverSideCookies)
+          .handler(enrichWithAJS, features.ajsInjection)
+      : router.register("root", handleWith404);
 
     // engage incoming webhook handler
-    if (this.features.engageIncomingWebhook) {
+    if (features.engageIncomingWebhook) {
       router.register("personas", handlePersonasWebhook);
     }
 
     router.register("bypass", handleOrigin);
-    const [_, resp, __] = await this.router.handle(request);
+    const [_, resp, __] = await router.handle(request);
 
     return resp;
   }
