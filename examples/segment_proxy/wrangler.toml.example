@@ -1,0 +1,14 @@
+name = "segment_proxy"
+main = "src/index.ts"
+compatibility_date = "2022-11-16"
+
+workers_dev = true
+
+[env.production]
+name = "segment_proxy"
+routes = [
+	{ pattern = "segment.pooya.fun", custom_domain = true, zone_name = "pooya.fun" }
+]
+[env.production.vars]
+ENVIRONMENT = "production"
+SEGMENT_WRITE_KEY = "..."
