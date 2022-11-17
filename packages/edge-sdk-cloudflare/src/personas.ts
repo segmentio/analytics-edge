@@ -18,6 +18,11 @@ export const handlePersonasWebhook: HandlerFunction = async (
   response,
   context
 ) => {
+  if (!context.env.Profiles) {
+    context.logger.log("debug", "Profiles storage is not available");
+    return [request, response, context];
+  }
+
   let event = (await request.json()) as PersonasWebhookPayload;
 
   if (event.type !== "identify") {
@@ -124,7 +129,7 @@ export const extractProfileFromEdge: HandlerFunction = async function (
 
   // for now we only support fetching profiles by userId, in the future
   // we can expand to all externalIds supported by personas
-  if (!userId) {
+  if (!userId || context.env.Profiles === undefined) {
     return [request, response, context];
   }
 
@@ -153,7 +158,13 @@ export const extractProfileFromSegment: HandlerFunction = async function (
   } = context;
 
   // ignore if traits are already in the context
-  if (!userId || !personasSpaceId || !personasToken || context.traits) {
+  if (
+    !userId ||
+    !personasSpaceId ||
+    !personasToken ||
+    context.traits ||
+    context.env.Profiles === undefined
+  ) {
     return [request, response, context];
   }
 
