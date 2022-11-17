@@ -6,5 +6,6 @@
   "linked": [],
   "access": "public",
   "updateInternalDependencies": "patch",
-  "ignore": ["@segment/cloudflare_example", "@segment/segment_proxy"]
+  "ignore": ["@segment/cloudflare_example", "@segment/segment_proxy"],
+  "baseBranch": "main"
 }

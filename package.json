@@ -13,7 +13,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=cloudflare_example^... && changeset publish",
+    "release": "turbo run build --filter=./example/* && changeset publish",
     "full-example:deploy": "yarn build && yarn workspace @segment/cloudflare_example deploy:prod",
     "proxy-example:deploy": "yarn build && yarn workspace @segment/segment_proxy deploy:prod"
   },
