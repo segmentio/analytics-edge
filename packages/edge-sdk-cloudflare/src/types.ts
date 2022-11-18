@@ -42,23 +42,94 @@ export interface HandlerFunction {
   ): Promise<[Request, Response | undefined, RouterContext]>;
 }
 
+/**
+ * Settings to initialize the SDK with,
+ */
 export interface EdgeSDKSettings {
+  /**
+   * Segment Personas Space ID
+   * Only required if you want to use Personas Profile API feature
+   * */
   personasSpaceId?: string;
+  /**
+   * Segment Personas Token
+   * Only required if you want to use Personas Profile API feature
+   * */
   personasToken?: string;
+  /**
+   * Edge SDK will expose few routes to serve assets, collect data, etc.
+   * This prefix will be used to prefix all the routes exposed by the SDK.
+   * @example "edge-sdk" will result in routes like "www.example.com/edge-sdk/ajs", "www.example.com/edge-sdk/event/t" etc.
+   * @required
+   * */
   routePrefix: string;
+  /**
+   * The Segment write key to use for sending events to Segment
+   * @required
+   * */
   writeKey: string;
+  /**
+   * This is the base Segment CDN URL that will be proxied by the SDK.
+   * @default "https://cdn.segment.com"
+   * */
   baseSegmentCDN?: string;
 }
 
+/**
+ * Choose which features you want to enable/disable
+ */
 export interface EdgeSDKFeatures {
+  /**
+   * SDK includes the Edge information on the context object sent to Segment
+   * The Edge information includes the location, region, timezone, etc.
+   * @default true
+   */
   edgeContext: boolean;
+  /**
+   * SDK will provide a way to run A/B tests on the Edge
+   * The Cloudflare Worker should be setup as a full proxy using Routes in order to use this feature
+   * @default true
+   */
   edgeVariations: boolean;
+  /**
+   * SDK will automatically inject the Segment snippet on the page
+   * The Cloudflare Worker should be setup as a full proxy using Routes in order to use this feature
+   * @default true
+   */
   ajsInjection: boolean;
+  /**
+   * Determines if the SDK should proxy the origin
+   * The Cloudflare Worker should be setup as a full proxy using Routes in order to use this feature
+   * @default true
+   */
   proxyOrigin: boolean;
+  /**
+   * SDK will set HTTPOnly cookies on the browser to track the userId and anonymousId
+   * @default true
+   */
   serverSideCookies: boolean;
+  /**
+   * SDK will not expose the writekey in the browser and
+   * only includes the writekey on the Edge before sending data to Segment
+   * @default true
+   */
   redactWritekey: boolean;
+  /**
+   * SDK will provide the option to send certain traits to the browser
+   * @default true
+   */
   clientSideTraits: boolean;
+  /**
+   * SDK will expose a route to receive Engage Webhook events and update the user profile
+   * @example: "www.example.com/<router_prefix>/personas"
+   * @default true
+   */
   engageIncomingWebhook: boolean;
+  /**
+   * SDK will use the Segment Personas Profile API to fetch the user profile
+   * only used if profile is not found in the KV store
+   * @default true
+   */
   useProfilesAPI: boolean;
 }
 
