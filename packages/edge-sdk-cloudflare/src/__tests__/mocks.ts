@@ -5,6 +5,11 @@ export const mockContext = {
     personasSpaceId: "test",
     personasToken: "test",
     baseSegmentCDN: "https://cdn.segment.com",
+    profilesStorage: {
+      get: jest.fn(),
+      put: jest.fn(),
+      delete: jest.fn(),
+    },
   },
   env: {
     Profiles: { get: () => null, put: () => null } as any,
