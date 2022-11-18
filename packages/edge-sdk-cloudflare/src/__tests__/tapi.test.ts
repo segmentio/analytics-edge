@@ -1,7 +1,11 @@
 import { handleOrigin, handleOriginWithEarlyExit } from "../origin";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { handleTAPI, includeEdgeTraitsInContext } from "../tapi";
+import {
+  handleTAPI,
+  includeEdgeTraitsInContext,
+  injectWritekey,
+} from "../tapi";
 import { Env } from "../types";
 import { mockContext } from "./mocks";
 
@@ -94,5 +98,21 @@ describe("origin handler", () => {
         timezone: "America/Vancouver",
       },
     });
+  });
+
+  it("Inject writekey to the headers", async () => {
+    const request = new Request("https://customer.com/seg/v1/p", {
+      method: "POST",
+      body: JSON.stringify({ type: "page", writeKey: "REDACTED" }),
+    });
+    const [req, resp, context] = await injectWritekey(request, undefined, {
+      ...mockContext,
+    });
+    expect(req.headers.get("Authorization")).toBe(
+      "Basic VEhJU19JU19BX1dSSVRFX0tFWTo="
+    ); // THIS_IS_A_WRITE_KEY base64 encoded
+
+    const body = await req.json();
+    expect(body).toEqual({ type: "page" });
   });
 });

@@ -3,6 +3,7 @@ import {
   handleAJS,
   handleBundles,
   handleSettings,
+  redactWritekey,
 } from "../assetsProxy";
 import { Router } from "../router";
 import { Segment } from "../segment";
@@ -93,5 +94,20 @@ describe("asset proxy", () => {
     analytics.setAnonymousId("👻");
     analytics.identify("👋");
     💾`);
+  });
+
+  it("Redacts the writekey in response", async () => {
+    const [req, resp, context] = await redactWritekey(
+      new Request("https://doest-not-matter.com"),
+      new Response("analytics.load('writekeys are not secrets')"),
+      {
+        ...mockContext,
+        settings: {
+          ...mockContext.settings,
+          writeKey: "writekeys are not secrets",
+        },
+      }
+    );
+    expect(await resp?.text()).toBe(`analytics.load('REDACTED')`);
   });
 });
