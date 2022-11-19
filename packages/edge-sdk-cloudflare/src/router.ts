@@ -1,5 +1,5 @@
 import { Segment } from "./segment";
-import { RouterContext, Env, HandlerFunction } from "./types";
+import { RouterContext, HandlerFunction } from "./types";
 
 interface Route {
   route: EdgeSDKKnownRoutes;

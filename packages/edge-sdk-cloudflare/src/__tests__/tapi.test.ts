@@ -6,7 +6,6 @@ import {
   includeEdgeTraitsInContext,
   injectWritekey,
 } from "../tapi";
-import { Env } from "../types";
 import { mockContext } from "./mocks";
 
 describe("origin handler", () => {

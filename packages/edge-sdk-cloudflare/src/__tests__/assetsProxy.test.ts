@@ -7,7 +7,6 @@ import {
 } from "../assetsProxy";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { Env } from "../types";
 import { mockContext } from "./mocks";
 
 describe("asset proxy", () => {

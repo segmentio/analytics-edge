@@ -1,10 +1,6 @@
 import { Logger } from "./logger";
 import { Segment } from "./segment";
 
-export interface Env {
-  Profiles?: KVNamespace;
-}
-
 export interface Storage {
   get(key: string): Promise<string | null>;
   put(
@@ -21,7 +17,6 @@ export interface UserIdentity {
 
 export interface RouterContext {
   settings: EdgeSDKSettings;
-  env: Env;
   logger: Logger;
   earlyExit?: boolean;
   anonymousId?: string;
@@ -73,6 +68,11 @@ export interface EdgeSDKSettings {
    * @default "https://cdn.segment.com"
    * */
   baseSegmentCDN?: string;
+  /**
+   * Profiles storage, should be a KV Store
+   *
+   * */
+  profilesStorage?: Storage;
 }
 
 /**

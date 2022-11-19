@@ -1,7 +1,6 @@
 import { Segment } from "@segment/edge-sdk-cloudflare";
-import type { Env as SDKEnv } from "@segment/edge-sdk-cloudflare";
 
-export interface Env extends SDKEnv {
+export interface Env {
   SEGMENT_WRITE_KEY: string;
 }
 
@@ -16,7 +15,6 @@ export default {
         writeKey: env.SEGMENT_WRITE_KEY,
         routePrefix: "magic",
       },
-      env,
       {
         useProfilesAPI: false,
         ajsInjection: false,
@@ -26,7 +24,7 @@ export default {
       }
     );
 
-    const resp = await segment.handleEvent(request, env);
+    const resp = await segment.handleEvent(request);
 
     if (resp) {
       return resp;

@@ -4,7 +4,7 @@ import { Router } from "./router";
 import {
   EdgeSDKFeatures,
   EdgeSDKSettings,
-  Env,
+  Storage,
   VariationEvaluationFunction,
 } from "./types";
 import {
@@ -59,7 +59,6 @@ export class Segment {
   private routePrefix: string;
   private personasSpaceId: string | undefined;
   private personasToken: string | undefined;
-  private _env: Env;
   private router: Router;
   private baseSegmentCDN: string;
   private _variations: Array<{
@@ -69,6 +68,7 @@ export class Segment {
   private _traitsFunc: (traits: any) => void;
   private logger: Logger;
   private features: EdgeSDKFeatures;
+  private profilesStorage?: Storage;
 
   get settings(): EdgeSDKSettings {
     return {
@@ -77,11 +77,8 @@ export class Segment {
       personasSpaceId: this.personasSpaceId,
       personasToken: this.personasToken,
       baseSegmentCDN: this.baseSegmentCDN,
+      profilesStorage: this.profilesStorage,
     };
-  }
-
-  get env(): Env {
-    return this.env;
   }
 
   get variations() {
@@ -92,11 +89,7 @@ export class Segment {
     return this._traitsFunc;
   }
 
-  constructor(
-    settings: EdgeSDKSettings,
-    env: Env,
-    features: Partial<EdgeSDKFeatures>
-  ) {
+  constructor(settings: EdgeSDKSettings, features: Partial<EdgeSDKFeatures>) {
     const {
       writeKey,
       routePrefix,
@@ -104,6 +97,7 @@ export class Segment {
       personasToken,
       baseSegmentCDN,
       logLevels,
+      profilesStorage,
     } = {
       ...sdkDefaultSettings,
       ...settings,
@@ -113,13 +107,12 @@ export class Segment {
     this.personasSpaceId = personasSpaceId;
     this.personasToken = personasToken;
     this.baseSegmentCDN = baseSegmentCDN;
+    this.profilesStorage = profilesStorage;
     this._variations = [];
-    this._env = env;
     this._traitsFunc = (traits: any) => {};
     this.logger = new Logger(logLevels);
     this.router = new Router(this.routePrefix, {
       settings: this.settings,
-      env,
       traitsFunc: this.traitsFunc,
       variations: this.variations,
       logger: this.logger,
@@ -127,7 +120,7 @@ export class Segment {
     this.features = { ...sdkDefaultFeatures, ...features };
   }
 
-  async handleEvent(request: Request, env: Env) {
+  async handleEvent(request: Request) {
     const router = this.router;
     const features = this.features;
 

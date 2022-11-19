@@ -11,10 +11,5 @@ export const mockContext = {
       delete: jest.fn(),
     },
   },
-  env: {
-    Profiles: { get: () => null, put: () => null } as any,
-    EdgeFunctions: {} as any,
-    dispatcher: {} as any,
-  },
   logger: { log: () => null } as any,
 };

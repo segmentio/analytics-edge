@@ -1,10 +1,10 @@
 import { Segment } from "@segment/edge-sdk-cloudflare";
-import type { Env as SDKEnv } from "@segment/edge-sdk-cloudflare";
 
-type Env = SDKEnv & {
+type Env = {
   SEGMENT_WRITE_KEY: string;
   PERSONAS_SPACE_ID: string;
   PERSONAS_TOKEN: string;
+  Profiles: KVNamespace;
 };
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -16,8 +16,8 @@ export default {
         personasSpaceId: env.PERSONAS_SPACE_ID,
         routePrefix: "wut",
         personasToken: env.PERSONAS_TOKEN,
+        profilesStorage: env.Profiles,
       },
-      env,
       {}
     );
 
@@ -35,7 +35,7 @@ export default {
       };
     });
 
-    const resp = await segment.handleEvent(request, env);
+    const resp = await segment.handleEvent(request);
 
     //@ts-ignore
     return resp;

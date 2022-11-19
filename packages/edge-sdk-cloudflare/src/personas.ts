@@ -1,7 +1,6 @@
 import { getCookie } from "./cookies";
 import { Logger } from "./logger";
 import {
-  Env,
   HandlerFunction,
   PersonasWebhookPayload,
   ProfileAPIPayload,
@@ -18,7 +17,7 @@ export const handlePersonasWebhook: HandlerFunction = async (
   response,
   context
 ) => {
-  if (!context.env.Profiles) {
+  if (!context.settings.profilesStorage) {
     context.logger.log("debug", "Profiles storage is not available");
     return [request, response, context];
   }
@@ -47,7 +46,9 @@ export const handlePersonasWebhook: HandlerFunction = async (
 
   context.logger.log("debug", "Accepting incoming webhook", { event });
   const profile_index = `${userId}`;
-  const rawProfileData = await context.env.Profiles.get(profile_index);
+  const rawProfileData = await context.settings.profilesStorage.get(
+    profile_index
+  );
   const profileData: UserProfile = rawProfileData
     ? JSON.parse(rawProfileData)
     : {};
@@ -57,7 +58,10 @@ export const handlePersonasWebhook: HandlerFunction = async (
     ...traits,
   };
 
-  await context.env.Profiles.put(profile_index, JSON.stringify(updatedProfile));
+  await context.settings.profilesStorage.put(
+    profile_index,
+    JSON.stringify(updatedProfile)
+  );
   context.logger.log("debug", `${personas.computation_class} updated`);
 
   return [
@@ -129,13 +133,13 @@ export const extractProfileFromEdge: HandlerFunction = async function (
 
   // for now we only support fetching profiles by userId, in the future
   // we can expand to all externalIds supported by personas
-  if (!userId || context.env.Profiles === undefined) {
+  if (!userId || context.settings.profilesStorage === undefined) {
     return [request, response, context];
   }
 
   const profile_index: UserProfileIndex = `user_id:${userId}`;
 
-  const profileData = await context.env.Profiles.get(profile_index);
+  const profileData = await context.settings.profilesStorage.get(profile_index);
   if (profileData) {
     return [request, response, { ...context, traits: JSON.parse(profileData) }];
   }
@@ -163,7 +167,7 @@ export const extractProfileFromSegment: HandlerFunction = async function (
     !personasSpaceId ||
     !personasToken ||
     context.traits ||
-    context.env.Profiles === undefined
+    context.settings.profilesStorage === undefined
   ) {
     return [request, response, context];
   }
@@ -190,7 +194,7 @@ export const extractProfileFromSegment: HandlerFunction = async function (
       const profilesResponse = (await data.json()) as ProfileAPIPayload;
       const profileObject = profilesResponse?.traits;
 
-      await context.env.Profiles.put(
+      await context.settings.profilesStorage.put(
         profile_index,
         JSON.stringify(profileObject),
         {

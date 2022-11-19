@@ -11,7 +11,6 @@ import {
 } from "../cookies";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { Env } from "../types";
 import { mockContext } from "./mocks";
 
 const getResponseWithContext = async (context: Record<string, string>) =>

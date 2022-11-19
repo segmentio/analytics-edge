@@ -1,4 +1,4 @@
-import { Env, HandlerFunction } from "./types";
+import { HandlerFunction } from "./types";
 
 export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
