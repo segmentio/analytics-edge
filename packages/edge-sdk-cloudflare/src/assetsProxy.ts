@@ -42,6 +42,9 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
   }
 
   const { userId, anonymousId, clientSideTraits } = ctx;
+  const host = request.headers.get("host") || "";
+
+  const cdnConfiguration = `analytics._cdn = "https://${host}/${ctx.settings.routePrefix}";`;
 
   const anonymousCall = `${
     anonymousId ? `analytics.setAnonymousId("${anonymousId}");` : ""
@@ -57,6 +60,7 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
 
   const content = await response.text();
   const body = `
+    ${cdnConfiguration}
     ${anonymousCall}
     ${idCall}
     ${content}`;
