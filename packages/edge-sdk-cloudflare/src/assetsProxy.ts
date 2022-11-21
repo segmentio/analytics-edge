@@ -65,7 +65,7 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
     ${idCall}
     ${content}`;
 
-  return [request, new Response(body, { ...response }), ctx];
+  return [request, new Response(body, response), ctx];
 };
 
 export const redactWritekey: HandlerFunction = async (
@@ -79,5 +79,43 @@ export const redactWritekey: HandlerFunction = async (
 
   const content = await response.text();
   const body = content.replace(ctx.settings.writeKey, "REDACTED");
-  return [request, new Response(body, { ...response }), ctx];
+
+  return [request, new Response(body, response), ctx];
+};
+
+export const configureApiHost: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  if (!response) {
+    return [request, response, ctx];
+  }
+
+  const host = request.headers.get("host") || "";
+  const content = await response.text();
+  const body = content.replace(
+    /api.segment.io\/v1/g,
+    `${host}/${ctx.settings.routePrefix}/evs`
+  );
+
+  return [request, new Response(body, response), ctx];
+};
+
+export const handleCORS: HandlerFunction = async (request, response, ctx) => {
+  if (!response) {
+    return [request, response, ctx];
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  return [
+    request,
+    new Response(response.body, {
+      headers,
+      status: response.status,
+      statusText: response.statusText,
+    }),
+    ctx,
+  ];
 };

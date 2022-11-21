@@ -23,8 +23,10 @@ import {
 } from "./personas";
 import {
   appendAJSCustomConfiguration,
+  configureApiHost,
   handleAJS,
   handleBundles,
+  handleCORS,
   handleSettings,
   redactWritekey,
 } from "./assetsProxy";
@@ -153,7 +155,9 @@ export class Segment {
     router
       .register("settings")
       .handler(handleSettings)
-      .handler(redactWritekey, features.redactWritekey);
+      .handler(configureApiHost)
+      .handler(redactWritekey, features.redactWritekey)
+      .handler(handleCORS);
 
     // TAPI handlers
     router
