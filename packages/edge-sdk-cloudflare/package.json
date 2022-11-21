@@ -36,6 +36,7 @@
   "dependencies": {
     "@segment/snippet": "^4.15.3",
     "nanoid": "^3.3.4",
+    "tldts": "^5.7.100",
     "worktop": "^0.8.0-next.14"
   }
 }

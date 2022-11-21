@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { parse as parseDomain } from "tldts";
 import { parse, stringify } from "worktop/cookie";
 import { HandlerFunction } from "./types";
 
@@ -15,16 +16,22 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
     return Promise.reject("No request or response found");
   }
   const host = request.headers.get("host") || "";
+  const domain = getDomain(host);
   const anonymousId = context.anonymousId || nanoid();
   const userId = context.userId;
-
   const headers = new Headers(response.headers);
+
+  context.logger.log("debug", "Enriching response with cookies", {
+    anonymousId: anonymousId,
+    userId: userId,
+  });
 
   const cookie = stringify("ajs_anonymous_id", anonymousId, {
     httponly: true,
     path: "/",
     maxage: 31536000,
-    domain: host,
+    domain,
+    secure: true,
   });
   headers.append("Set-Cookie", cookie);
 
@@ -33,12 +40,14 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
       httponly: true,
       path: "/",
       maxage: 31536000,
-      domain: host,
+      domain,
+      secure: true,
     });
     headers.append("Set-Cookie", cookie);
   }
   const newResponse = new Response(response.body, {
-    ...response,
+    status: response.status,
+    statusText: response.statusText,
     headers,
   });
 
@@ -79,4 +88,13 @@ export const extractIdFromPayload: HandlerFunction = async (
     response,
     newContext,
   ];
+};
+
+const getDomain = (host: string): string => {
+  const res = parseDomain(host);
+  if (res.domain) {
+    return `.${res.domain}`;
+  } else {
+    return host;
+  }
 };
