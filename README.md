@@ -12,10 +12,6 @@ This is an official Segment Edge SDK monorepo powered by Turborepo. Versioning a
 
 # How to use the Edge SDK?
 
-An example is provided in `examples/cloudflare_example`. Note that the SDK requires the following KV stores to operate:
+## Using with Cloudflare Workers
 
-```
-    Profiles
-```
-
-Also, it requires Env.dispatcher ( a feature of Platform Workers ) to be available.
+Two examples are provided in `examples/`. See [the docs](https://github.com/segmentio/analytics-edge/blob/main/packages/edge-sdk-cloudflare/README.md) for full deatils.
