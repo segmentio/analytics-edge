@@ -31,7 +31,7 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
     path: "/",
     maxage: 31536000,
     domain,
-    secure: true,
+    samesite: "Lax",
   });
   headers.append("Set-Cookie", cookie);
 
@@ -41,10 +41,15 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
       path: "/",
       maxage: 31536000,
       domain,
-      secure: true,
+      samesite: "Lax",
     });
     headers.append("Set-Cookie", cookie);
   }
+
+  // required for CORS requests (when customer not using a full proxy, e.g.,
+  // TAPI on segment.example.com and customer on example.com)
+  headers.set("Access-Control-Allow-Credentials", "true");
+
   const newResponse = new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -93,7 +98,7 @@ export const extractIdFromPayload: HandlerFunction = async (
 const getDomain = (host: string): string => {
   const res = parseDomain(host);
   if (res.domain) {
-    return `.${res.domain}`;
+    return res.domain;
   } else {
     return host;
   }

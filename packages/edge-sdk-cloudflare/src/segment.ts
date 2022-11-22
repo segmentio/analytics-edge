@@ -163,8 +163,8 @@ export class Segment {
     router
       .register("tapi")
       .handler(injectWritekey, features.redactWritekey)
-      .handler(extractIdFromCookie)
-      .handler(extractIdFromPayload)
+      .handler(extractIdFromCookie, features.serverSideCookies)
+      .handler(extractIdFromPayload, features.serverSideCookies)
       .handler(includeEdgeTraitsInContext, features.edgeContext)
       .handler(handleTAPI)
       .handler(enrichResponseWithIdCookies);

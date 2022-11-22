@@ -58,7 +58,16 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
       : ""
   }`;
 
-  const content = await response.text();
+  let content = await response.text();
+
+  // TODO: this monkey-patch is hacky. We should probably address this directly in AJS codebase instead.
+  // Sending (credentials:"include") is required to allow TAPI calls set cookies when TAPI and customer website are not on the same domain.
+  // For example, TAPI on segment.example.com and customer website on example.com
+  content = content.replace(
+    /method:"post"/g,
+    'method:"post",credentials:"include"'
+  );
+
   const body = `
     ${cdnConfiguration}
     ${anonymousCall}
