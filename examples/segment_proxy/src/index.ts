@@ -21,7 +21,6 @@ export default {
         edgeVariations: false,
         clientSideTraits: false,
         proxyOrigin: false,
-        serverSideCookies: true,
       }
     );
 

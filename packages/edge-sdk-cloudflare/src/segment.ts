@@ -46,9 +46,9 @@ const sdkDefaultSettings = {
 
 const sdkDefaultFeatures: EdgeSDKFeatures = {
   edgeContext: true,
-  edgeVariations: true,
   ajsInjection: true,
   serverSideCookies: true,
+  edgeVariations: true,
   redactWritekey: true,
   clientSideTraits: true,
   engageIncomingWebhook: true,
