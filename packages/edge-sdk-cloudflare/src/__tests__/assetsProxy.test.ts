@@ -10,101 +10,188 @@ import { Segment } from "../segment";
 import { mockContext } from "./mocks";
 
 describe("asset proxy", () => {
-  beforeEach(() => {
-    globalThis.fetch = jest.fn().mockImplementation(() => {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-      });
-    });
-  });
+  beforeAll(() => {
+    //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
+    const fetchMock = getMiniflareFetchMock();
 
-  afterEach(() => {
-    //@ts-ignore
-    globalThis.fetch.mockClear();
+    fetchMock.disableNetConnect();
+
+    const origin = fetchMock.get("https://cdn.segment.com");
+    origin
+      .intercept({
+        method: "GET",
+        path: "https://cdn.segment.com/analytics.js/v1/THIS_IS_A_WRITE_KEY/analytics.min.js",
+      })
+      .reply(200, "Analytics JS Code!");
+
+    origin
+      .intercept({
+        method: "GET",
+        path: "https://cdn.segment.com/v1/projects/THIS_IS_A_WRITE_KEY/settings",
+      })
+      .reply(200, "Settings Code!");
+
+    origin
+      .intercept({
+        method: "GET",
+        path: "https://cdn.segment.com/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js",
+      })
+      .reply(200, "Schema filter 👨🏻‍💻");
+
+    origin
+      .intercept({
+        method: "GET",
+        path: "https://cdn.segment.com/next-integrations/actions/edge_sdk/ed984d68b220640a83ac.js",
+      })
+      .reply(200, "Edge SDK destination (Actions) 💥");
+
+    origin
+      .intercept({
+        method: "GET",
+        path: "https://cdn.segment.com/next-integrations/integrations/edge/2.2.4/edge.dynamic.js.gz",
+      })
+      .reply(200, "Edge SDK destination (Legacy) 👴");
   });
 
   it("Proxy AJS regardless of the passed in url", async () => {
     const [req, resp, context] = await handleAJS(
       new Request("https://doest-not-matter.com/"),
       undefined,
-      {
-        ...mockContext,
-        settings: {
-          ...mockContext.settings,
-          writeKey: "abc",
-        },
-      }
-    );
-    expect(globalThis.fetch).toBeCalledWith(
-      "https://cdn.segment.com/analytics.js/v1/abc/analytics.min.js"
+      mockContext
     );
     expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toBe("Analytics JS Code!");
   });
 
   it("Proxy settigs regardless of the passed in url", async () => {
     const [req, resp, context] = await handleSettings(
       new Request("https://doest-not-matter.com/"),
       undefined,
-      {
-        ...mockContext,
-        params: {
-          writeKey: "abc", // this shouldn't matter
-        },
-      }
+      mockContext
     );
-    expect(globalThis.fetch).toBeCalledWith(
-      "https://cdn.segment.com/v1/projects/THIS_IS_A_WRITE_KEY/settings"
-    );
+
     expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toBe("Settings Code!");
   });
 
-  it("Proxy bundles", async () => {
+  it("Proxy AJS bundles", async () => {
     const [req, resp, context] = await handleBundles(
       new Request(
         "https://sushi-shop.com/seg/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"
       ),
       undefined,
-      {
-        ...mockContext,
-        params: {
-          bundleName: "abc",
-        },
-      }
-    );
-    expect(globalThis.fetch).toBeCalledWith(
-      "https://cdn.segment.com/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"
+      mockContext
     );
     expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toBe("Schema filter 👨🏻‍💻");
   });
 
-  it("Enrich with identity calls", async () => {
+  it("Proxy action destination bundles", async () => {
+    const [req, resp, context] = await handleBundles(
+      new Request(
+        "https://sushi-shop.com/seg/next-integrations/actions/edge_sdk/ed984d68b220640a83ac.js"
+      ),
+      undefined,
+      mockContext
+    );
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toBe("Edge SDK destination (Actions) 💥");
+  });
+
+  it("Proxy legacy destination bundles", async () => {
+    const [req, resp, context] = await handleBundles(
+      new Request(
+        "https://sushi-shop.com/seg/next-integrations/integrations/edge/2.2.4/edge.dynamic.js.gz"
+      ),
+      undefined,
+      mockContext
+    );
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toBe("Edge SDK destination (Legacy) 👴");
+  });
+
+  it("Enrich with CDN info", async () => {
     const [req, resp, context] = await appendAJSCustomConfiguration(
-      new Request("https://doest-not-matter.com"),
-      new Response("💾"),
+      new Request("https://doest-not-matter.com", {
+        headers: { host: "sushi-shop.com" },
+      }),
+      new Response("The amazing AJS minified code!"),
+      mockContext
+    );
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toBe(`
+    analytics._cdn = "https://sushi-shop.com/seg";
+    The amazing AJS minified code!`);
+  });
+
+  it("Enrich with anonymousId call", async () => {
+    const [req, resp, context] = await appendAJSCustomConfiguration(
+      new Request("https://doest-not-matter.com", {
+        headers: { host: "sushi-shop.com" },
+      }),
+      new Response("The amazing AJS minified code!"),
       {
         ...mockContext,
         anonymousId: "👻",
+      }
+    );
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toBe(`
+    analytics._cdn = "https://sushi-shop.com/seg";analytics.setAnonymousId("👻");
+    The amazing AJS minified code!`);
+  });
+
+  it("Enrich with user id", async () => {
+    const [req, resp, context] = await appendAJSCustomConfiguration(
+      new Request("https://doest-not-matter.com", {
+        headers: { host: "sushi-shop.com" },
+      }),
+      new Response("The amazing AJS minified code!"),
+      {
+        ...mockContext,
         userId: "👋",
       }
     );
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
-    analytics._cdn = "https:///seg";
-    analytics.setAnonymousId("👻");
-    analytics.identify("👋");
-    💾`);
+    analytics._cdn = "https://sushi-shop.com/seg";analytics.identify("👋");
+    The amazing AJS minified code!`);
+  });
+
+  it("Enrich with client-side traits", async () => {
+    const [req, resp, context] = await appendAJSCustomConfiguration(
+      new Request("https://doest-not-matter.com", {
+        headers: { host: "sushi-shop.com" },
+      }),
+      new Response("The amazing AJS minified code!"),
+      {
+        ...mockContext,
+        userId: "👋",
+        clientSideTraits: {
+          locale: "en",
+        },
+      }
+    );
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toBe(`
+    analytics._cdn = "https://sushi-shop.com/seg";analytics.identify("👋", {"locale":"en"});
+    The amazing AJS minified code!`);
   });
 
   it("Redacts the writekey in response", async () => {
     const [req, resp, context] = await redactWritekey(
       new Request("https://doest-not-matter.com"),
-      new Response("analytics.load('writekeys are not secrets')"),
+      new Response("analytics.load('writekeys are not secret')"),
       {
         ...mockContext,
         settings: {
           ...mockContext.settings,
-          writeKey: "writekeys are not secrets",
+          writeKey: "writekeys are not secret",
         },
       }
     );

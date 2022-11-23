@@ -50,6 +50,7 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
     anonymousId ? `analytics.setAnonymousId("${anonymousId}");` : ""
   }`;
 
+  // TODO: Switch to non-tracking call
   const idCall = `${
     userId && clientSideTraits
       ? `analytics.identify("${userId}", ${JSON.stringify(clientSideTraits)});`
@@ -69,9 +70,7 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
   );
 
   const body = `
-    ${cdnConfiguration}
-    ${anonymousCall}
-    ${idCall}
+    ${cdnConfiguration}${anonymousCall}${idCall}
     ${content}`;
 
   return [request, new Response(body, response), ctx];
