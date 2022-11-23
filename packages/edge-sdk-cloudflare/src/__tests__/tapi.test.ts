@@ -10,20 +10,18 @@ import { mockContext } from "./mocks";
 
 describe("origin handler", () => {
   beforeEach(() => {
-    globalThis.fetch = jest.fn().mockImplementation(() => {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        headers: new Headers({
-          "content-type": "text/html",
-        }),
-      });
-    });
-  });
+    //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
+    const fetchMock = getMiniflareFetchMock();
 
-  afterEach(() => {
-    //@ts-ignore
-    globalThis.fetch.mockClear();
+    fetchMock.disableNetConnect();
+
+    const origin = fetchMock.get("https://api.segment.io");
+    origin
+      .intercept({
+        method: "POST",
+        path: "/v1/p",
+      })
+      .reply(200, "Success!");
   });
 
   it("Proxies TAPI", async () => {
@@ -31,12 +29,10 @@ describe("origin handler", () => {
       method: "POST",
       body: JSON.stringify({ type: "page" }),
     });
-    const [req, resp, context] = await handleTAPI(request, undefined, {
-      ...mockContext,
-    });
-    expect(globalThis.fetch).toBeCalledWith(
-      "https://api.segment.io/v1/p",
-      request
+    const [req, resp, context] = await handleTAPI(
+      request,
+      undefined,
+      mockContext
     );
     expect(resp?.status).toBe(200);
   });
@@ -57,31 +53,21 @@ describe("origin handler", () => {
         messageId: "ajs-next-f142195b60efd67506bd5c4f7a4ffa99",
         writeKey: "Shall not be revealed",
       }),
+      cf: {
+        city: "Vancouver",
+        region: "Beautiful British Columbia",
+        country: "CA",
+        latitude: "49.2827",
+        longitude: "-123.1207",
+        postalCode: "V6B 6E3",
+        timezone: "America/Vancouver",
+      } as RequestInitCfProperties,
     });
 
-    request.cf = {
-      city: "Vancouver",
-      region: "Beautiful British Columbia",
-      country: "Canada",
-      latitude: "49.2827",
-      longitude: "-123.1207",
-      postalCode: "V6B 6E3",
-      timezone: "America/Vancouver",
-      asn: 13335,
-      asOrganization: "Cloudflare, Inc.",
-      colo: "YYZ",
-      requestPriority: "2",
-      tlsCipher: "ECDHE-ECDSA-AES128-GCM-SHA256",
-      tlsVersion: "TLSv1.3",
-      httpProtocol: "HTTP/2",
-      clientTcpRtt: 0,
-    };
     const [req, resp, context] = await includeEdgeTraitsInContext(
       request,
       undefined,
-      {
-        ...mockContext,
-      }
+      mockContext
     );
     const body = await req.json();
     expect(body).toBeDefined();
@@ -89,7 +75,7 @@ describe("origin handler", () => {
     expect(body?.context).toMatchObject({
       edge: {
         city: "Vancouver",
-        country: "Canada",
+        country: "CA",
         latitude: "49.2827",
         longitude: "-123.1207",
         postalCode: "V6B 6E3",
@@ -104,9 +90,11 @@ describe("origin handler", () => {
       method: "POST",
       body: JSON.stringify({ type: "page", writeKey: "REDACTED" }),
     });
-    const [req, resp, context] = await injectWritekey(request, undefined, {
-      ...mockContext,
-    });
+    const [req, resp, context] = await injectWritekey(
+      request,
+      undefined,
+      mockContext
+    );
     expect(req.headers.get("Authorization")).toBe(
       "Basic VEhJU19JU19BX1dSSVRFX0tFWTo="
     ); // THIS_IS_A_WRITE_KEY base64 encoded
