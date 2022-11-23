@@ -14,22 +14,14 @@ class ElementHandler {
   }
 
   element(element: Element) {
-    const snip = snippet
-      .max({
-        host: `${this.host}/${this.routePrefix}`,
-        apiKey: this.writeKey,
-        ajsPath: `/ajs/${nanoid()}`,
-        useHostForBundles: true,
-        page: {},
-      })
-      .replace(
-        `analytics.load("${this.writeKey}");`,
-        `analytics.load("${this.writeKey}", {
-          integrations: {
-            "Segment.io": {apiHost: "${this.host}/${this.routePrefix}/evs"}
-          }
-        });`
-      );
+    const snip = snippet.max({
+      host: `${this.host}/${this.routePrefix}`,
+      apiKey: this.writeKey,
+      ajsPath: `/ajs/${nanoid()}`,
+      useHostForBundles: true,
+      page: {},
+    });
+
     element.append(`<script>${snip}</script>`, { html: true });
   }
 }
