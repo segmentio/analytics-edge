@@ -90,6 +90,7 @@ describe("asset proxy", () => {
     );
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
+    analytics._cdn = "https:///seg";
     analytics.setAnonymousId("👻");
     analytics.identify("👋");
     💾`);
