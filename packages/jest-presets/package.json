@@ -4,6 +4,8 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "ts-jest": "^29.0.1"
+    "ts-jest": "^29.0.1",
+    "miniflare": "^2.11.0",
+    "jest-environment-miniflare": "^2.11.0"
   }
 }

@@ -20,7 +20,7 @@
     "test": "jest"
   },
   "jest": {
-    "preset": "jest-presets/jest/node"
+    "preset": "jest-presets/jest/cf"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.16.0",
