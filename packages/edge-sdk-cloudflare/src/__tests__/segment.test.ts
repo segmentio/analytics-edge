@@ -9,7 +9,7 @@ import { Router } from "../router";
 import { Segment } from "../segment";
 import { mockContext, mockSegmentCDN, mockSushiShop } from "./mocks";
 
-describe("integration tests: AJS injection", () => {
+describe("integration tests: AJS snippet injection", () => {
   beforeEach(() => {
     mockSegmentCDN();
     mockSushiShop();
@@ -172,5 +172,51 @@ describe("integration tests: Proxy AJS and Assets", () => {
     const data = await resp?.text();
     expect(data).toContain("analytics.setAnonymousId("); // anonymousId is set
     expect(data).not.toContain('analytics.identify("123");'); // identify is not called
+  });
+
+  it("It should not configure user id if server-side cookie and client-side traits feature is disabled", async () => {
+    let segment = new Segment(
+      { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
+      { serverSideCookies: false, clientSideTraits: false }
+    );
+
+    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=123; ajs_anonymous_id=xyz",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    // AJS is available on the first party domain
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain('analytics._cdn = "https://sushi-shop.com/tester');
+    expect(data).not.toContain('analytics.setAnonymousId("xyz");');
+    expect(data).not.toContain('analytics.identify("123");');
+  });
+
+  it("It should set server-side cookies when returning AJS", async () => {
+    let segment = new Segment(
+      { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
+      {}
+    );
+
+    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=123; ajs_anonymous_id=xyz",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    // AJS is available on the first party domain
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Analytics JS Code!");
+    expect(resp?.headers.get("set-cookie")).toContain("ajs_user_id=123");
+    expect(resp?.headers.get("set-cookie")).toContain("ajs_anonymous_id=xyz");
+    expect(resp?.headers.get("set-cookie")).toContain("HttpOnly");
+    expect(resp?.headers.get("set-cookie")).toContain("Domain=sushi-shop.com;");
   });
 });
