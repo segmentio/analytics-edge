@@ -28,7 +28,7 @@ const getResponseWithContext = async (context: Record<string, string>) =>
   )?.[1];
 
 describe("cookies", () => {
-  it("enrichResponseWithIdCookies", async () => {
+  it("adds id cookies to the response", async () => {
     const resp = await getResponseWithContext({
       userId: "abc",
       anonymousId: "def",
@@ -42,6 +42,25 @@ describe("cookies", () => {
     expect(cookie).toContain("HttpOnly");
   });
 
+  it("use top domain for the cookie", async () => {
+    const [req, resp, context] = await enrichResponseWithIdCookies(
+      new Request("https://doest-not-matter.com/", {
+        headers: { host: "segment.sushi-shop.com" },
+      }),
+      new Response(JSON.stringify({}), { headers: {} }),
+      {
+        ...mockContext,
+        userId: "abc",
+      }
+    );
+
+    const cookie = resp?.headers.get("Set-Cookie");
+
+    expect(cookie).toContain("ajs_user_id=abc;");
+    expect(cookie).toContain("Domain=sushi-shop.com;");
+    expect(cookie).toContain("HttpOnly");
+  });
+
   it("generates anonymousId if it doesn't provided in the context", async () => {
     const resp = await getResponseWithContext({
       userId: "abc",
@@ -49,18 +68,18 @@ describe("cookies", () => {
 
     const cookie = resp?.headers.get("Set-Cookie");
 
-    expect(cookie).toContain("ajs_anonymous_id=");
+    expect(cookie).toContain("ajs_anonymous_id="); // anonymousId is generated
     expect(cookie).toContain("ajs_user_id=abc;");
   });
 
   it("doesn't set userId if it is not provided in the context", async () => {
     const resp = await getResponseWithContext({
-      anonymousId: "def",
+      anonymousId: "ghost",
     });
 
     const cookie = resp?.headers.get("Set-Cookie");
 
-    expect(cookie).toContain("ajs_anonymous_id=def");
+    expect(cookie).toContain("ajs_anonymous_id=ghost");
     expect(cookie).not.toContain("ajs_user_id");
   });
 
@@ -72,25 +91,30 @@ describe("cookies", () => {
       },
     });
 
+    const resp = new Response();
+
     const [newRequest, newResponse, newContext] = await extractIdFromCookie(
       request,
-      new Response(),
+      resp,
       mockContext
     );
 
     expect(newContext.anonymousId).toBe("123");
     expect(newContext.userId).toBe("abc");
+    expect(newRequest).toBe(request);
+    expect(newResponse).toBe(resp);
   });
 
   it("extract id from requests that has identity in them", async () => {
+    const payload = {
+      anonymousId: "123",
+      userId: "abc",
+      type: "track",
+      event: "test",
+    };
     const request = new Request("https://doest-not-matter.com/", {
       method: "POST",
-      body: JSON.stringify({
-        anonymousId: "123",
-        userId: "abc",
-        type: "track",
-        event: "test",
-      }),
+      body: JSON.stringify(payload),
     });
 
     const [newRequest, newResponse, newContext] = await extractIdFromPayload(
@@ -101,5 +125,8 @@ describe("cookies", () => {
 
     expect(newContext.anonymousId).toBe("123");
     expect(newContext.userId).toBe("abc");
+
+    const outputJson = await newRequest.json();
+    expect(outputJson).toEqual(payload); // doesn't modify the payload
   });
 });
