@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 import { parse as parseDomain } from "tldts";
 import { parse, stringify } from "worktop/cookie";
 import { HandlerFunction } from "./types";
@@ -17,7 +17,7 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
   }
   const host = request.headers.get("host") || "";
   const domain = getDomain(host);
-  const anonymousId = context.anonymousId || nanoid();
+  const anonymousId = context.anonymousId || uuidv4();
   const userId = context.userId;
   const headers = new Headers(response.headers);
 

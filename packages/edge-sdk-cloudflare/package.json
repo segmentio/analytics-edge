@@ -26,6 +26,7 @@
     "@cloudflare/workers-types": "^3.16.0",
     "@segment/tsconfig-edge-sdk": "*",
     "@types/jest": "^29.0.3",
+    "@types/uuid": "^8.3.4",
     "eslint": "^7.32.0",
     "eslint-config-edge-sdk": "*",
     "jest": "^29.0.3",
@@ -35,8 +36,8 @@
   },
   "dependencies": {
     "@segment/snippet": "^4.15.3",
-    "nanoid": "^3.3.4",
     "tldts": "^5.7.100",
+    "uuid": "^9.0.0",
     "worktop": "^0.8.0-next.14"
   }
 }

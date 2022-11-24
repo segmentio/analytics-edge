@@ -1,5 +1,5 @@
 import snippet from "@segment/snippet";
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 import { Handler } from "worktop";
 import { HandlerFunction } from "./types";
 
@@ -17,7 +17,7 @@ class ElementHandler {
     const snip = snippet.max({
       host: `${this.host}/${this.routePrefix}`,
       apiKey: this.writeKey,
-      ajsPath: `/ajs/${nanoid()}`,
+      ajsPath: `/ajs/${uuidv4()}`,
       useHostForBundles: true,
       page: {},
     });
