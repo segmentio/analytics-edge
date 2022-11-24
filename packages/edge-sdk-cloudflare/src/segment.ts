@@ -22,6 +22,7 @@ import {
 } from "./personas";
 import {
   appendAJSCustomConfiguration,
+  appendIdCallsToAJS,
   configureApiHost,
   handleAJS,
   handleBundles,
@@ -145,9 +146,10 @@ export class Segment {
       .handler(enrichResponseWithIdCookies, features.serverSideCookies)
       .handler(handleClientSideTraits, features.clientSideTraits)
       .handler(
-        appendAJSCustomConfiguration,
+        appendIdCallsToAJS,
         features.serverSideCookies || features.clientSideTraits
       )
+      .handler(appendAJSCustomConfiguration)
       .handler(redactWritekey, features.redactWritekey);
 
     // settings handlers

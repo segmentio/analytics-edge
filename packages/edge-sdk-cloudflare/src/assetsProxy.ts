@@ -32,7 +32,8 @@ export const handleBundles: HandlerFunction = async (
 };
 
 // Injects the custom AJS calls (to configure identity/traits into the AJS bundle)
-export const appendAJSCustomConfiguration: HandlerFunction = async (
+// TODO: Possibly break this into two calls so we can control client-side traits and server-side cookies separately
+export const appendIdCallsToAJS: HandlerFunction = async (
   request,
   response,
   ctx
@@ -42,9 +43,6 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
   }
 
   const { userId, anonymousId, clientSideTraits } = ctx;
-  const host = request.headers.get("host") || "";
-
-  const cdnConfiguration = `analytics._cdn = "https://${host}/${ctx.settings.routePrefix}";`;
 
   const anonymousCall = `${
     anonymousId ? `analytics.setAnonymousId("${anonymousId}");` : ""
@@ -61,6 +59,29 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
 
   let content = await response.text();
 
+  const body = `
+    ${anonymousCall}${idCall}
+    ${content}`;
+
+  return [request, new Response(body, response), ctx];
+};
+
+// Configures AJS with the custom domain and other monkey patches
+export const appendAJSCustomConfiguration: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  if (!response) {
+    return [request, response, ctx];
+  }
+
+  const host = request.headers.get("host") || "";
+
+  const cdnConfiguration = `analytics._cdn = "https://${host}/${ctx.settings.routePrefix}";`;
+
+  let content = await response.text();
+
   // TODO: this monkey-patch is hacky. We should probably address this directly in AJS codebase instead.
   // Sending (credentials:"include") is required to allow TAPI calls set cookies when TAPI and customer website are not on the same domain.
   // For example, TAPI on segment.example.com and customer website on example.com
@@ -70,7 +91,7 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
   );
 
   const body = `
-    ${cdnConfiguration}${anonymousCall}${idCall}
+    ${cdnConfiguration}
     ${content}`;
 
   return [request, new Response(body, response), ctx];
