@@ -292,4 +292,26 @@ describe("integration tests: Proxy AJS and Assets", () => {
     expect(data).toContain("THIS_IS_A_WRITE_KEY"); // API host is set to first party domain
     expect(data).not.toContain("REDACTED"); // there is no pointers to segment.io
   });
+
+  it("Settings: should allow access from any origin", async () => {
+    let segment = new Segment(
+      { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
+      {}
+    );
+
+    const request = new Request(
+      "https://sushi-shop.com/tester/v1/projects/anything/settings",
+      {
+        headers: { host: "sushi-shop.com" },
+      }
+    );
+
+    const resp = await segment.handleEvent(request);
+
+    // Settings are available on the first party domain
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Segment.io"); // Returns settings content ( integrations obj )
+    expect(resp?.headers.get("access-control-allow-origin")).toBe("*");
+  });
 });
