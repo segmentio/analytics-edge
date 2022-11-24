@@ -7,50 +7,11 @@ import {
 } from "../assetsProxy";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { mockContext } from "./mocks";
+import { mockContext, mockSegmentCDN } from "./mocks";
 
 describe("asset proxy", () => {
   beforeAll(() => {
-    //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
-    const fetchMock = getMiniflareFetchMock();
-
-    fetchMock.disableNetConnect();
-
-    const origin = fetchMock.get("https://cdn.segment.com");
-    origin
-      .intercept({
-        method: "GET",
-        path: "https://cdn.segment.com/analytics.js/v1/THIS_IS_A_WRITE_KEY/analytics.min.js",
-      })
-      .reply(200, "Analytics JS Code!");
-
-    origin
-      .intercept({
-        method: "GET",
-        path: "https://cdn.segment.com/v1/projects/THIS_IS_A_WRITE_KEY/settings",
-      })
-      .reply(200, "Settings Code!");
-
-    origin
-      .intercept({
-        method: "GET",
-        path: "https://cdn.segment.com/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js",
-      })
-      .reply(200, "Schema filter 👨🏻‍💻");
-
-    origin
-      .intercept({
-        method: "GET",
-        path: "https://cdn.segment.com/next-integrations/actions/edge_sdk/ed984d68b220640a83ac.js",
-      })
-      .reply(200, "Edge SDK destination (Actions) 💥");
-
-    origin
-      .intercept({
-        method: "GET",
-        path: "https://cdn.segment.com/next-integrations/integrations/edge/2.2.4/edge.dynamic.js.gz",
-      })
-      .reply(200, "Edge SDK destination (Legacy) 👴");
+    mockSegmentCDN();
   });
 
   it("Proxy AJS regardless of the passed in url", async () => {

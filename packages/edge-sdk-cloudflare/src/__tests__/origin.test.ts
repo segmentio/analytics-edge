@@ -1,36 +1,11 @@
 import { handleOrigin, handleOriginWithEarlyExit } from "../origin";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { mockContext } from "./mocks";
+import { mockContext, mockSushiShop } from "./mocks";
 
 describe("origin handlers", () => {
   beforeAll(() => {
-    //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
-    const fetchMock = getMiniflareFetchMock();
-
-    fetchMock.disableNetConnect();
-
-    const origin = fetchMock.get("https://sushi-shop.com");
-    origin
-      .intercept({
-        method: "GET",
-        path: "/",
-      })
-      .reply(200, "Hello from Sushi Shop!");
-
-    origin
-      .intercept({
-        method: "GET",
-        path: "/menu",
-      })
-      .reply(200, "Sushi Menu!", { headers: { "content-type": "text/html" } });
-
-    origin
-      .intercept({
-        method: "GET",
-        path: "/logo.png",
-      })
-      .reply(200, "🎨", { headers: { "content-type": "image/png" } });
+    mockSushiShop();
   });
 
   it("handleOrigin proxies requests to the origin", async () => {
@@ -41,7 +16,7 @@ describe("origin handlers", () => {
       mockContext
     );
     expect(resp?.status).toBe(200);
-    expect(await resp?.text()).toBe("Hello from Sushi Shop!");
+    expect(await resp?.text()).toContain("Hello from Sushi Shop 🍣");
   });
 
   it("handleOrigin does not fetch origin if there is already a response passed into the handler", async () => {
@@ -82,7 +57,7 @@ describe("origin handlers", () => {
       context
     );
     expect(resp).toBeDefined();
-    expect(await resp?.text()).toBe("Sushi Menu!");
+    expect(await resp?.text()).toContain("Sushi Menu!");
     expect(ctx.earlyExit).toBeFalsy();
   });
 
@@ -94,7 +69,7 @@ describe("origin handlers", () => {
     );
 
     expect(resp).toBeDefined();
-    expect(await resp?.text()).toBe("🎨");
+    expect(await resp?.text()).toContain("🎨");
     expect(ctx.earlyExit).toBeTruthy();
   });
 });

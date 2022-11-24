@@ -13,3 +13,89 @@ export const mockContext = {
   },
   logger: { log: () => null } as any,
 };
+
+export const mockSegmentCDN = () => {
+  // @ts-ignore
+  const fetchMock = getMiniflareFetchMock();
+
+  fetchMock.disableNetConnect();
+
+  const origin = fetchMock.get("https://cdn.segment.com");
+  origin
+    .intercept({
+      method: "GET",
+      path: "https://cdn.segment.com/analytics.js/v1/THIS_IS_A_WRITE_KEY/analytics.min.js",
+    })
+    .reply(200, "Analytics JS Code!");
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "https://cdn.segment.com/v1/projects/THIS_IS_A_WRITE_KEY/settings",
+    })
+    .reply(200, "Settings Code!");
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "https://cdn.segment.com/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js",
+    })
+    .reply(200, "Schema filter 👨🏻‍💻");
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "https://cdn.segment.com/next-integrations/actions/edge_sdk/ed984d68b220640a83ac.js",
+    })
+    .reply(200, "Edge SDK destination (Actions) 💥");
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "https://cdn.segment.com/next-integrations/integrations/edge/2.2.4/edge.dynamic.js.gz",
+    })
+    .reply(200, "Edge SDK destination (Legacy) 👴");
+};
+
+export const mockSushiShop = () => {
+  // @ts-ignore
+  const fetchMock = getMiniflareFetchMock();
+
+  fetchMock.disableNetConnect();
+
+  const origin = fetchMock.get("https://sushi-shop.com");
+  origin
+    .intercept({
+      method: "GET",
+      path: "/",
+    })
+    .reply(200, wrapInHTML("Hello from Sushi Shop 🍣"), {
+      headers: { "content-type": "text/html" },
+    });
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "/menu",
+    })
+    .reply(200, wrapInHTML("Sushi Menu!"), {
+      headers: { "content-type": "text/html" },
+    });
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "/logo.png",
+    })
+    .reply(200, "🎨", { headers: { "content-type": "image/png" } });
+};
+
+const wrapInHTML = (content: string) => `<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+  </head>
+  <body>
+    ${content}
+  </body>
+</html>`;
