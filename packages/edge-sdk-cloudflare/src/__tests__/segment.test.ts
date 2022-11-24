@@ -115,7 +115,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
     expect(await resp?.text()).toContain("Schema filter 👨🏻‍💻"); // Returns the AJS content
   });
 
-  it("Configures the AJS CDN correctly in AJS code", async () => {
+  it("AJS: Configures the AJS CDN correctly in AJS code", async () => {
     let segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       {}
@@ -133,7 +133,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
     );
   });
 
-  it("Configures AJS with Id cookies that exist in the request", async () => {
+  it("AJS: Configures AJS with Id cookies that exist in the request", async () => {
     let segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       {}
@@ -154,7 +154,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
     expect(data).toContain('analytics.identify("123");');
   });
 
-  it("generates anonymousId automatically if it is not already part of request cookies", async () => {
+  it("AJS: generates anonymousId automatically if it is not already part of request cookies", async () => {
     let segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       {}
@@ -174,7 +174,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
     expect(data).not.toContain('analytics.identify("123");'); // identify is not called
   });
 
-  it("It should not configure user id if server-side cookie and client-side traits feature is disabled", async () => {
+  it("AJS: It should not configure user id if server-side cookie and client-side traits feature is disabled", async () => {
     let segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       { serverSideCookies: false, clientSideTraits: false }
@@ -196,7 +196,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
     expect(data).not.toContain('analytics.identify("123");');
   });
 
-  it("It should set server-side cookies when returning AJS", async () => {
+  it("AJS: It should set server-side cookies when returning AJS", async () => {
     let segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       {}
@@ -218,5 +218,78 @@ describe("integration tests: Proxy AJS and Assets", () => {
     expect(resp?.headers.get("set-cookie")).toContain("ajs_anonymous_id=xyz");
     expect(resp?.headers.get("set-cookie")).toContain("HttpOnly");
     expect(resp?.headers.get("set-cookie")).toContain("Domain=sushi-shop.com;");
+  });
+
+  it("Settings: Configures API host to point to the first-party domain", async () => {
+    let segment = new Segment(
+      { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
+      {}
+    );
+
+    const request = new Request(
+      "https://sushi-shop.com/tester/v1/projects/anything/settings",
+      {
+        headers: { host: "sushi-shop.com" },
+      }
+    );
+
+    const resp = await segment.handleEvent(request);
+
+    // Settings are available on the first party domain
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Segment.io"); // Returns settings content ( integrations obj )
+    expect(data).toContain("sushi-shop.com/tester/evs"); // API host is set to first party domain
+    expect(data).not.toContain("api.segment.io"); // there is no pointers to segment.io
+  });
+
+  it("Settings: redacts the writekey in settings if the flag is set", async () => {
+    let segment = new Segment(
+      { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
+      {
+        redactWritekey: true,
+      }
+    );
+
+    const request = new Request(
+      "https://sushi-shop.com/tester/v1/projects/anything/settings",
+      {
+        headers: { host: "sushi-shop.com" },
+      }
+    );
+
+    const resp = await segment.handleEvent(request);
+
+    // Settings are available on the first party domain
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Segment.io"); // Returns settings content ( integrations obj )
+    expect(data).toContain("REDACTED"); // API host is set to first party domain
+    expect(data).not.toContain("THIS_IS_A_WRITE_KEY"); // there is no pointers to segment.io
+  });
+
+  it("Settings: does not redact the writekey in settings if the flag is set to false", async () => {
+    let segment = new Segment(
+      { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
+      {
+        redactWritekey: false,
+      }
+    );
+
+    const request = new Request(
+      "https://sushi-shop.com/tester/v1/projects/anything/settings",
+      {
+        headers: { host: "sushi-shop.com" },
+      }
+    );
+
+    const resp = await segment.handleEvent(request);
+
+    // Settings are available on the first party domain
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Segment.io"); // Returns settings content ( integrations obj )
+    expect(data).toContain("THIS_IS_A_WRITE_KEY"); // API host is set to first party domain
+    expect(data).not.toContain("REDACTED"); // there is no pointers to segment.io
   });
 });
