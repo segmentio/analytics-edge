@@ -1,5 +1,6 @@
 import {
   appendAJSCustomConfiguration,
+  appendIdCallsToAJS,
   handleAJS,
   handleBundles,
   handleSettings,
@@ -34,7 +35,8 @@ describe("asset proxy", () => {
 
     expect(resp?.status).toBe(200);
     const data = await resp?.text();
-    expect(data).toBe("Settings Code!");
+    expect(data).toContain("Segment.io");
+    expect(data).toContain("integrations");
   });
 
   it("Proxy AJS bundles", async () => {
@@ -91,7 +93,7 @@ describe("asset proxy", () => {
   });
 
   it("Enrich with anonymousId call", async () => {
-    const [req, resp, context] = await appendAJSCustomConfiguration(
+    const [req, resp, context] = await appendIdCallsToAJS(
       new Request("https://doest-not-matter.com", {
         headers: { host: "sushi-shop.com" },
       }),
@@ -103,12 +105,12 @@ describe("asset proxy", () => {
     );
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
-    analytics._cdn = "https://sushi-shop.com/seg";analytics.setAnonymousId("👻");
+    analytics.setAnonymousId("👻");
     The amazing AJS minified code!`);
   });
 
   it("Enrich with user id", async () => {
-    const [req, resp, context] = await appendAJSCustomConfiguration(
+    const [req, resp, context] = await appendIdCallsToAJS(
       new Request("https://doest-not-matter.com", {
         headers: { host: "sushi-shop.com" },
       }),
@@ -120,12 +122,12 @@ describe("asset proxy", () => {
     );
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
-    analytics._cdn = "https://sushi-shop.com/seg";analytics.identify("👋");
+    analytics.identify("👋");
     The amazing AJS minified code!`);
   });
 
   it("Enrich with client-side traits", async () => {
-    const [req, resp, context] = await appendAJSCustomConfiguration(
+    const [req, resp, context] = await appendIdCallsToAJS(
       new Request("https://doest-not-matter.com", {
         headers: { host: "sushi-shop.com" },
       }),
@@ -140,7 +142,7 @@ describe("asset proxy", () => {
     );
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
-    analytics._cdn = "https://sushi-shop.com/seg";analytics.identify("👋", {"locale":"en"});
+    analytics.identify("👋", {"locale":"en"});
     The amazing AJS minified code!`);
   });
 

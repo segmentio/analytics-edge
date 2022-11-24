@@ -102,7 +102,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
 
     // Settings are available on the first party domain
     expect(resp?.status).toBe(200);
-    expect(await resp?.text()).toContain("Settings Code!"); // Returns the AJS content
+    expect(await resp?.text()).toContain("Segment.io"); // Returns settings content ( integrations obj )
 
     request = new Request(
       "https://sushi-shop.com/tester/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"

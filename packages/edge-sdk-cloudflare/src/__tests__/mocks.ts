@@ -33,7 +33,23 @@ export const mockSegmentCDN = () => {
       method: "GET",
       path: "https://cdn.segment.com/v1/projects/THIS_IS_A_WRITE_KEY/settings",
     })
-    .reply(200, "Settings Code!");
+    .reply(
+      200,
+      `{
+      "integrations": {
+        "Segment.io": {
+          "apiKey": "***REMOVED***",
+          "apiHost": "api.segment.io/v1"
+        }
+      },
+      "metrics": {
+        "sampleRate": 0.1,
+        "host": "api.segment.io/v1"
+      },
+      "remotePlugins": []
+    }
+    `
+    );
 
   origin
     .intercept({
