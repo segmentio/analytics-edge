@@ -3,36 +3,60 @@ import { Router } from "../router";
 import { Segment } from "../segment";
 import { mockContext } from "./mocks";
 
-describe("origin handler", () => {
-  beforeEach(() => {
-    globalThis.fetch = jest.fn().mockImplementation(() => {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        headers: new Headers({
-          "content-type": "text/html",
-        }),
-      });
-    });
+describe("origin handlers", () => {
+  beforeAll(() => {
+    //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
+    const fetchMock = getMiniflareFetchMock();
+
+    fetchMock.disableNetConnect();
+
+    const origin = fetchMock.get("https://sushi-shop.com");
+    origin
+      .intercept({
+        method: "GET",
+        path: "/",
+      })
+      .reply(200, "Hello from Sushi Shop!");
+
+    origin
+      .intercept({
+        method: "GET",
+        path: "/menu",
+      })
+      .reply(200, "Sushi Menu!", { headers: { "content-type": "text/html" } });
+
+    origin
+      .intercept({
+        method: "GET",
+        path: "/logo.png",
+      })
+      .reply(200, "🎨", { headers: { "content-type": "image/png" } });
   });
 
-  afterEach(() => {
-    //@ts-ignore
-    globalThis.fetch.mockClear();
-  });
-
-  it("Proxies requests to the origin", async () => {
-    const request = new Request("https://originhandler.com/");
+  it("handleOrigin proxies requests to the origin", async () => {
+    const request = new Request("https://sushi-shop.com/");
     const [req, resp, context] = await handleOrigin(
-      new Request("https://originhandler.com/"),
+      request,
       undefined,
-      { ...mockContext }
+      mockContext
     );
-    expect(globalThis.fetch).toBeCalledWith(request);
     expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toBe("Hello from Sushi Shop!");
   });
 
-  it("Don't fetch the origin if an experiment is setup on the route", async () => {
+  it("handleOrigin does not fetch origin if there is already a response passed into the handler", async () => {
+    const request = new Request("https://sushi-shop.com/");
+    const response = new Response("Hello from the previous handler!");
+    const [req, resp, context] = await handleOrigin(
+      request,
+      response,
+      mockContext
+    );
+
+    expect(response).toBe(resp);
+  });
+
+  it("handleOriginWithEarlyExit don't fetch the origin if an experiment is setup on the route", async () => {
     const context = {
       ...mockContext,
       variations: [
@@ -44,46 +68,33 @@ describe("origin handler", () => {
       ],
     };
 
-    let [req, resp] = await handleOriginWithEarlyExit(
-      new Request("https://originhandler.com/"),
+    let [req, resp, ctx] = await handleOriginWithEarlyExit(
+      new Request("https://sushi-shop.com/"),
       undefined,
       context
     );
-    expect(globalThis.fetch).not.toBeCalled();
+    expect(resp).toBeUndefined();
+    expect(ctx.earlyExit).toBeFalsy();
 
-    [req, resp] = await handleOriginWithEarlyExit(
-      new Request("https://originhandler.com/test"),
+    [req, resp, ctx] = await handleOriginWithEarlyExit(
+      new Request("https://sushi-shop.com/menu"),
       undefined,
       context
     );
-    expect(globalThis.fetch).toHaveBeenCalled();
+    expect(resp).toBeDefined();
+    expect(await resp?.text()).toBe("Sushi Menu!");
+    expect(ctx.earlyExit).toBeFalsy();
   });
 
-  it("Does early exist for non text/html content", async () => {
-    let [req, resp, context] = await handleOriginWithEarlyExit(
-      new Request("https://originhandler.com/"),
+  it("handleOriginWithEarlyExit does an early exist for non text/html content", async () => {
+    let [req, resp, ctx] = await handleOriginWithEarlyExit(
+      new Request("https://sushi-shop.com/logo.png"),
       undefined,
       mockContext
     );
-    expect(globalThis.fetch).toHaveBeenCalled();
-    expect(context.earlyExit).toBe(undefined);
 
-    // return a different content-type
-    globalThis.fetch = jest.fn().mockImplementation(() => {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        headers: new Headers({
-          "content-type": "image/png",
-        }),
-      });
-    });
-    [req, resp, context] = await handleOriginWithEarlyExit(
-      new Request("https://originhandler.com/"),
-      undefined,
-      mockContext
-    );
-    expect(globalThis.fetch).toHaveBeenCalled();
-    expect(context.earlyExit).toBe(true);
+    expect(resp).toBeDefined();
+    expect(await resp?.text()).toBe("🎨");
+    expect(ctx.earlyExit).toBeTruthy();
   });
 });
