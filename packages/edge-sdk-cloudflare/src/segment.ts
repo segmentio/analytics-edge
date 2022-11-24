@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import { parse, stringify } from "worktop/cookie";
 import { Router } from "./router";
 import {
@@ -139,7 +138,7 @@ export class Segment {
       )
       .handler(extractProfileFromEdge, features.clientSideTraits)
       .handler(
-        extractProfileFromEdge,
+        extractProfileFromSegment,
         features.useProfilesAPI && features.clientSideTraits
       )
       .handler(handleAJS)
