@@ -9,12 +9,12 @@ class ElementHandler {
   routePrefix: string;
   constructor(host: string, writeKey: string, routePrefix: string) {
     this.host = host;
-    this.writeKey = "REDACTED";
+    this.writeKey = writeKey;
     this.routePrefix = routePrefix;
   }
 
   element(element: Element) {
-    const snip = snippet.max({
+    const snip = snippet.min({
       host: `${this.host}/${this.routePrefix}`,
       apiKey: this.writeKey,
       ajsPath: `/ajs/${uuidv4()}`,
@@ -43,6 +43,28 @@ export const enrichWithAJS: HandlerFunction = async (
     request,
     new HTMLRewriter()
       .on("head", new ElementHandler(host, writeKey, routePrefix))
+      .transform(response),
+    context,
+  ];
+};
+
+export const enrichWithAJSNoWriteKey: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  if (!response) {
+    return Promise.reject("No response");
+  }
+  const {
+    settings: { routePrefix },
+  } = context;
+  const host = request.headers.get("host") || "";
+
+  return [
+    request,
+    new HTMLRewriter()
+      .on("head", new ElementHandler(host, "REDACTED", routePrefix))
       .transform(response),
     context,
   ];

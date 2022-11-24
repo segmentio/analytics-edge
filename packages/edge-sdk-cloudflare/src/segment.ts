@@ -12,7 +12,7 @@ import {
   extractIdFromPayload,
   getCookie,
 } from "./cookies";
-import { enrichWithAJS } from "./parser";
+import { enrichWithAJS, enrichWithAJSNoWriteKey } from "./parser";
 import {
   handleVariations,
   handleClientSideTraits,
@@ -185,7 +185,14 @@ export class Segment {
           .handler(handleVariations, features.edgeVariations)
           .handler(handleOrigin)
           .handler(enrichResponseWithIdCookies, features.serverSideCookies)
-          .handler(enrichWithAJS, features.ajsInjection)
+          .handler(
+            enrichWithAJS,
+            features.ajsInjection && !features.redactWritekey
+          )
+          .handler(
+            enrichWithAJSNoWriteKey,
+            features.ajsInjection && features.redactWritekey
+          )
       : router.register("root", handleWith404);
 
     // engage incoming webhook handler
