@@ -6,33 +6,36 @@ import { mockContext } from "./mocks";
 
 describe("personas handler", () => {
   beforeEach(() => {
-    globalThis.fetch = jest.fn().mockImplementation(() => {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        headers: new Headers({
-          "content-type": "json",
-        }),
-        json: async () =>
-          Promise.resolve({
-            traits: {
-              coolio: true,
-            },
-            cursor: {
-              url: "",
-              has_more: false,
-              next: "",
-              limit: 200,
-            },
-          }),
-      });
-    });
-  });
+    //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
+    const fetchMock = getMiniflareFetchMock();
 
-  afterEach(() => {
-    //@ts-ignore
-    globalThis.fetch.mockClear();
-    jest.resetAllMocks();
+    fetchMock.disableNetConnect();
+
+    const origin = fetchMock.get("https://profiles.segment.com");
+    origin
+      .intercept({
+        method: "GET",
+        path: () => true,
+      })
+      .reply(
+        200,
+        {
+          traits: {
+            coolio: true,
+          },
+          cursor: {
+            url: "",
+            has_more: false,
+            next: "",
+            limit: 200,
+          },
+        },
+        {
+          headers: new Headers({
+            "content-type": "json",
+          }),
+        }
+      );
   });
 
   it("handle profile gets traits from the KV", async () => {
@@ -85,10 +88,7 @@ describe("personas handler", () => {
       undefined,
       { ...mockContext, userId: "abc" }
     );
-    expect(globalThis.fetch).toBeCalledWith(
-      "https://profiles.segment.com/v1/spaces/test/collections/users/profiles/user_id:abc/traits?limit=200&class=audience",
-      expect.anything()
-    );
+
     expect(context?.traits).toEqual({ coolio: true });
     expect(mockContext.settings.profilesStorage.put).toBeCalledWith(
       "user_id:abc",
