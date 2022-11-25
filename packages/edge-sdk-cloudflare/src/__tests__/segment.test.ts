@@ -7,7 +7,7 @@ import {
 } from "../assetsProxy";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { mockContext, mockSegmentCDN, mockSushiShop } from "./mocks";
+import { mockContext, mockSegmentCDN, mockSushiShop, mockTapi } from "./mocks";
 
 describe("integration tests: AJS snippet injection", () => {
   beforeEach(() => {
@@ -313,5 +313,34 @@ describe("integration tests: Proxy AJS and Assets", () => {
     const data = await resp?.text();
     expect(data).toContain("Segment.io"); // Returns settings content ( integrations obj )
     expect(resp?.headers.get("access-control-allow-origin")).toBe("*");
+  });
+});
+
+describe("integration tests: Proxy TAPI", () => {
+  beforeEach(() => {
+    mockTapi();
+  });
+
+  it("Makes AJS available on the first party domain", async () => {
+    let segment = new Segment(
+      { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
+      { redactWritekey: false, edgeContext: false }
+    );
+
+    let request = new Request("https://sushi-shop.com/tester/evs/t", {
+      method: "POST",
+      body: JSON.stringify({
+        type: "track",
+        event: "test",
+        properties: {},
+        writeKey: "THIS_IS_A_WRITE_KEY",
+      }),
+    });
+
+    let resp = await segment.handleEvent(request);
+
+    // AJS is available on the first party domain
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toContain("Success!");
   });
 });

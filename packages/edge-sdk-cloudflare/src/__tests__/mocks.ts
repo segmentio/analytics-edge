@@ -106,6 +106,28 @@ export const mockSushiShop = () => {
     .reply(200, "🎨", { headers: { "content-type": "image/png" } });
 };
 
+export const mockTapi = () => {
+  // @ts-ignore
+  const fetchMock = getMiniflareFetchMock();
+  //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
+
+  fetchMock.disableNetConnect();
+
+  const origin = fetchMock.get("https://api.segment.io");
+  let data;
+  origin
+    .intercept({
+      method: "POST",
+      path: (path: string) => path.startsWith("/v1"),
+      body: (body: string) => {
+        // TODO: Add some logic to only respond to valid
+        // TAPI calls, after this PR merges: https://github.com/cloudflare/miniflare/pull/423/files
+        return true;
+      },
+    })
+    .reply(200, "Success!");
+};
+
 const wrapInHTML = (content: string) => `<!doctype html>
 <html lang=en>
   <head>
