@@ -1,5 +1,8 @@
 module.exports = {
   testEnvironment: "miniflare",
+  testEnvironmentOptions: {
+    kvNamespaces: ["PROFILES_TEST_NAMESPACE"],
+  },
   roots: ["<rootDir>"],
   transform: {
     "^.+\\.tsx?$": "ts-jest",
