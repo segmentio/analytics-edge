@@ -137,3 +137,40 @@ const wrapInHTML = (content: string) => `<!doctype html>
     ${content}
   </body>
 </html>`;
+
+export const samplePersonasIncomingRequest = {
+  anonymousId: "eml_59bb5025c368374f702e578cfee8a048c9244c9f",
+  channel: "server",
+  context: {
+    library: {
+      name: "unknown",
+      version: "unknown",
+    },
+    personas: {
+      computation_class: "audience",
+      computation_id: "aud_24vZy7jA4QGrYm6vtx5xMlHhy9Q",
+      computation_key: "5009052",
+      namespace: "spa_1hZFbc8rjREtD41YL5Ici3Ox4pY",
+      space_id: "spa_1hZFbc8rjREtD41YL5Ici3Ox4pY",
+    },
+  },
+  integrations: {
+    All: false,
+    Warehouses: {
+      all: false,
+    },
+  },
+  messageId: "personas_123",
+  originalTimestamp: "2022-10-10T00:02:50.0888384Z",
+  projectId: "xyz",
+  receivedAt: "2022-10-10T00:02:50.871Z",
+  sentAt: null,
+  timestamp: "2022-10-10T00:02:50.088Z",
+  traits: {
+    cool_people: true,
+  },
+  type: "identify",
+  userId: "coolio",
+  version: 2,
+  writeKey: "THIS_IS_A_WRITE_KEY",
+};

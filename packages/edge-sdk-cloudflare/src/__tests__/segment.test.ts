@@ -7,7 +7,13 @@ import {
 } from "../assetsProxy";
 import { Router } from "../router";
 import { Segment } from "../segment";
-import { mockContext, mockSegmentCDN, mockSushiShop, mockTapi } from "./mocks";
+import {
+  mockContext,
+  mockSegmentCDN,
+  mockSushiShop,
+  mockTapi,
+  samplePersonasIncomingRequest,
+} from "./mocks";
 
 describe("integration tests: AJS snippet injection", () => {
   beforeEach(() => {
@@ -342,5 +348,34 @@ describe("integration tests: Proxy TAPI", () => {
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toContain("Success!");
+  });
+});
+
+describe("integration tests: Personas webhook", () => {
+  //@ts-ignore
+  const { PROFILES_TEST_NAMESPACE: Profiles } = getMiniflareBindings();
+
+  beforeEach(async () => {
+    await Profiles.put("array", "test");
+  });
+
+  it("Stores user profile if it does not exist in the storage", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+      },
+      {}
+    );
+    const request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(200);
+    const data = await Profiles.get(samplePersonasIncomingRequest.userId);
+    expect(data).toBe('{"cool_people":true}');
   });
 });
