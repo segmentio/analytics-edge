@@ -378,4 +378,59 @@ describe("integration tests: Personas webhook", () => {
     const data = await Profiles.get(samplePersonasIncomingRequest.userId);
     expect(data).toBe('{"cool_people":true}');
   });
+
+  it("Does not override the already existing audiences", async () => {
+    await Profiles.put(
+      samplePersonasIncomingRequest.userId,
+      '{"mac_users":true}'
+    );
+
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+      },
+      {}
+    );
+    const request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(200);
+    const data = await Profiles.get(samplePersonasIncomingRequest.userId);
+    expect(JSON.parse(data)).toEqual(
+      JSON.parse('{"cool_people":true, "mac_users":true}')
+    );
+  });
+
+  it("Updates existing audience", async () => {
+    await Profiles.put(
+      samplePersonasIncomingRequest.userId,
+      '{"cool_people":true}'
+    );
+
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+      },
+      {}
+    );
+    const request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify({
+        ...samplePersonasIncomingRequest,
+        traits: { cool_people: false },
+      }),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(200);
+    const data = await Profiles.get(samplePersonasIncomingRequest.userId);
+    expect(JSON.parse(data)).toEqual(JSON.parse('{"cool_people":false}'));
+  });
 });
