@@ -4,6 +4,7 @@ import {
   EdgeSDKFeatures,
   EdgeSDKSettings,
   Storage,
+  TraitsFunction,
   VariationEvaluationFunction,
 } from "./types";
 import {
@@ -67,7 +68,7 @@ export class Segment {
     route: string;
     evaluationFunction: VariationEvaluationFunction;
   }>;
-  private _traitsFunc: (traits: any) => void;
+  private _traitsFunc: TraitsFunction;
   private logger: Logger;
   private features: EdgeSDKFeatures;
   private profilesStorage?: Storage;
@@ -87,7 +88,7 @@ export class Segment {
     return this._variations;
   }
 
-  get traitsFunc(): (traits: any) => void {
+  get traitsFunc(): TraitsFunction {
     return this._traitsFunc;
   }
 
@@ -111,11 +112,11 @@ export class Segment {
     this.baseSegmentCDN = baseSegmentCDN;
     this.profilesStorage = profilesStorage;
     this._variations = [];
-    this._traitsFunc = (traits: any) => {};
+    this._traitsFunc = (traits) => undefined;
     this.logger = new Logger(logLevels);
     this.router = new Router(this.routePrefix, {
       settings: this.settings,
-      traitsFunc: this.traitsFunc,
+      traitsFunc: (f) => this.traitsFunc(f),
       variations: this.variations,
       logger: this.logger,
     });
@@ -218,7 +219,7 @@ export class Segment {
     });
   }
 
-  async clientSideTraits(func: (traits: any) => void) {
+  async clientSideTraits(func: TraitsFunction) {
     this._traitsFunc = func;
   }
 }
