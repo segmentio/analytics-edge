@@ -21,11 +21,12 @@ export interface RouterContext {
   earlyExit?: boolean;
   anonymousId?: string;
   userId?: string;
-  traitsFunc?: (traits: any) => void; // fix type
+  traitsFunc?: (traits: Record<string, any>) => Record<string, any> | undefined;
   variations?: Array<{
     route: string;
     evaluationFunction: VariationEvaluationFunction;
   }>;
+  clientSideTraits?: Record<string, any>;
   [key: string]: any;
 }
 
@@ -158,3 +159,7 @@ export interface PersonasWebhookPayload {
 export interface ProfileAPIPayload {
   traits: Record<string, any>;
 }
+
+export type TraitsFunction = (
+  traits: Record<string, any>
+) => Record<string, any> | undefined;
