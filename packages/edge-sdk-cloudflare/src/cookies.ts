@@ -12,9 +12,10 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
   response,
   context
 ) => {
-  if (!response || !request) {
-    return Promise.reject("No request or response found");
+  if (response.status !== 200) {
+    return [request, response, context];
   }
+
   const host = request.headers.get("host") || "";
   const domain = getDomain(host);
   const anonymousId = context.anonymousId || uuidv4();

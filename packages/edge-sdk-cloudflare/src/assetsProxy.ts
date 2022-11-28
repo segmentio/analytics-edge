@@ -102,7 +102,7 @@ export const redactWritekey: HandlerFunction = async (
   response,
   ctx
 ) => {
-  if (!response) {
+  if (response.status !== 200) {
     return [request, response, ctx];
   }
 
