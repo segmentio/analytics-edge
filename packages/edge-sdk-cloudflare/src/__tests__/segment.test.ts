@@ -16,6 +16,46 @@ import {
   samplePersonasIncomingRequest,
 } from "./mocks";
 
+describe("integration tests: Proxy Origin", () => {
+  beforeEach(() => {
+    mockSegmentCDN();
+    mockSushiShop();
+  });
+
+  it("Proxies origin without modifications", async () => {
+    let segment = new Segment(
+      { writeKey: "X", routePrefix: "tester" },
+      { ajsInjection: false, proxyOrigin: true }
+    );
+
+    const request = new Request("https://sushi-shop.com/", {
+      headers: { host: "sushi-shop.com" },
+    });
+
+    const resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Hello from Sushi Shop 🍣"); // page content is rendered
+  });
+
+  it("Does not proxy origin if the flag is off", async () => {
+    let segment = new Segment(
+      { writeKey: "X", routePrefix: "tester" },
+      { proxyOrigin: false }
+    );
+
+    const request = new Request("https://sushi-shop.com/", {
+      headers: { host: "sushi-shop.com" },
+    });
+
+    const resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(404);
+    expect(await resp?.text()).toBe("Not Found");
+  });
+});
+
 describe("integration tests: AJS snippet injection", () => {
   beforeEach(() => {
     mockSegmentCDN();
@@ -79,6 +119,23 @@ describe("integration tests: AJS snippet injection", () => {
     const data = await resp?.text();
     expect(data).not.toContain("analytics"); // no mention of analytics on the page
     expect(data).toContain("Hello from Sushi Shop 🍣"); // page content is rendered
+  });
+
+  it("Avoid AJS snippet injection with non-200 responses", async () => {
+    let segment = new Segment({ writeKey: "X", routePrefix: "tester" }, {});
+
+    const request = new Request(
+      "https://sushi-shop.com/menu/confit-du-canard",
+      {
+        headers: { host: "sushi-shop.com" },
+      }
+    );
+
+    const resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(404);
+    const data = await resp?.text();
+    expect(data).toContain("Not found"); // page content is rendered
   });
 });
 
@@ -225,6 +282,34 @@ describe("integration tests: Proxy AJS and Assets", () => {
     expect(resp?.headers.get("set-cookie")).toContain("ajs_anonymous_id=xyz");
     expect(resp?.headers.get("set-cookie")).toContain("HttpOnly");
     expect(resp?.headers.get("set-cookie")).toContain("Domain=sushi-shop.com;");
+  });
+
+  it("AJS: Invalid responses are returned verbatim", async () => {
+    let segment = new Segment(
+      { writeKey: "INVALID_WRITEKEY", routePrefix: "tester" },
+      {}
+    );
+
+    let request = new Request("https://sushi-shop.com/tester/ajs/13232");
+    let resp = await segment.handleEvent(request);
+
+    // 404 from Segment CDN is returned without any modifications
+    expect(resp?.status).toBe(404);
+    expect(await resp?.text()).toBe(
+      "Cannot GET - Invalid path or write key provided."
+    ); // Returns the AJS content
+
+    request = new Request(
+      "https://sushi-shop.com/tester/v1/projects/anything/settings"
+    );
+
+    resp = await segment.handleEvent(request);
+
+    // 404 from Segment CDN is returned without any modifications
+    expect(resp?.status).toBe(404);
+    expect(await resp?.text()).toBe(
+      "Cannot GET - Invalid path or write key provided."
+    );
   });
 
   it("Settings: Configures API host to point to the first-party domain", async () => {

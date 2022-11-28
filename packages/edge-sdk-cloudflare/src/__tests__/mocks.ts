@@ -31,6 +31,13 @@ export const mockSegmentCDN = () => {
   origin
     .intercept({
       method: "GET",
+      path: "https://cdn.segment.com/analytics.js/v1/INVALID_WRITEKEY/analytics.min.js",
+    })
+    .reply(404, "Cannot GET - Invalid path or write key provided.");
+
+  origin
+    .intercept({
+      method: "GET",
       path: "https://cdn.segment.com/v1/projects/THIS_IS_A_WRITE_KEY/settings",
     })
     .reply(
@@ -50,6 +57,13 @@ export const mockSegmentCDN = () => {
     }
     `
     );
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "https://cdn.segment.com/v1/projects/INVALID_WRITEKEY/settings",
+    })
+    .reply(404, "Cannot GET - Invalid path or write key provided.");
 
   origin
     .intercept({
@@ -120,6 +134,15 @@ export const mockSushiShop = () => {
       path: "/not-so-cool-menu",
     })
     .reply(200, wrapInHTML("Regular Sushi Menu!"), {
+      headers: { "content-type": "text/html" },
+    });
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "/menu/confit-du-canard",
+    })
+    .reply(404, wrapInHTML("Not found"), {
       headers: { "content-type": "text/html" },
     });
 };
