@@ -31,7 +31,7 @@ describe("origin handler", () => {
     });
     const [req, resp, context] = await handleTAPI(
       request,
-      undefined,
+      new Response("Unhandled Rejection", { status: 501 }),
       mockContext
     );
     expect(resp?.status).toBe(200);
@@ -66,7 +66,7 @@ describe("origin handler", () => {
 
     const [req, resp, context] = await includeEdgeTraitsInContext(
       request,
-      undefined,
+      new Response("Unhandled Rejection", { status: 501 }),
       mockContext
     );
     const body = await req.json();
@@ -92,7 +92,7 @@ describe("origin handler", () => {
     });
     const [req, resp, context] = await injectWritekey(
       request,
-      undefined,
+      new Response("Unhandled Rejection", { status: 501 }),
       mockContext
     );
     expect(req.headers.get("Authorization")).toBe(

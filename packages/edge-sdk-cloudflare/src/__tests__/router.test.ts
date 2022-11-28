@@ -32,7 +32,7 @@ describe("router", () => {
     const request = new Request("https://😬.com/seg/v1/projects/abc/settings");
     router.handle(request);
 
-    expect(handler).toHaveBeenCalledWith(request, undefined, {
+    expect(handler).toHaveBeenCalledWith(request, expect.any(Object), {
       ...mockContext,
       params: {
         writeKey: "abc",
@@ -47,7 +47,7 @@ describe("router", () => {
     );
     router.handle(request);
 
-    expect(handler).toHaveBeenCalledWith(request, undefined, {
+    expect(handler).toHaveBeenCalledWith(request, expect.any(Object), {
       ...mockContext,
       params: {
         bundleName: "schemaFilter.bundle.debb169c1abb431faaa6.js",
@@ -61,7 +61,7 @@ describe("router", () => {
       "https://👀.com/seg/next-integrations/actions/braze/ha$hed.js"
     );
     router.handle(request);
-    expect(handler).toHaveBeenCalledWith(request, undefined, {
+    expect(handler).toHaveBeenCalledWith(request, expect.any(Object), {
       ...mockContext,
       route: "destinations",
     });
@@ -72,7 +72,7 @@ describe("router", () => {
       method: "POST",
     });
     router.handle(request);
-    expect(handler).toHaveBeenCalledWith(request, undefined, {
+    expect(handler).toHaveBeenCalledWith(request, expect.any(Object), {
       ...mockContext,
       route: "tapi",
       params: {
@@ -84,7 +84,7 @@ describe("router", () => {
   it("Proxy AJS", () => {
     const request = new Request("https://🚀.com/seg/ajs/r0tpUjybtJJxOT82lV62a");
     router.handle(request);
-    expect(handler).toHaveBeenCalledWith(request, undefined, {
+    expect(handler).toHaveBeenCalledWith(request, expect.any(Object), {
       ...mockContext,
       route: "ajs",
       params: {
@@ -96,7 +96,7 @@ describe("router", () => {
   it("Proxy pages", () => {
     let request = new Request("https://🍣.com/sashimi/salmon");
     router.handle(request);
-    expect(handler).toHaveBeenCalledWith(request, undefined, {
+    expect(handler).toHaveBeenCalledWith(request, expect.any(Object), {
       ...mockContext,
       route: "root",
     });
@@ -105,7 +105,7 @@ describe("router", () => {
       "https://🍣.com/sashimi/salmon/sashimi_side_shot.jpg"
     );
     router.handle(request);
-    expect(handler).toHaveBeenCalledWith(request, undefined, {
+    expect(handler).toHaveBeenCalledWith(request, expect.any(Object), {
       ...mockContext,
       route: "root",
     });

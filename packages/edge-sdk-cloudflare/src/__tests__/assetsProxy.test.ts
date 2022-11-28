@@ -18,7 +18,7 @@ describe("asset proxy", () => {
   it("Proxy AJS regardless of the passed in url", async () => {
     const [req, resp, context] = await handleAJS(
       new Request("https://doest-not-matter.com/"),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       mockContext
     );
     expect(resp?.status).toBe(200);
@@ -29,7 +29,7 @@ describe("asset proxy", () => {
   it("Proxy settigs regardless of the passed in url", async () => {
     const [req, resp, context] = await handleSettings(
       new Request("https://doest-not-matter.com/"),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       mockContext
     );
 
@@ -44,7 +44,7 @@ describe("asset proxy", () => {
       new Request(
         "https://sushi-shop.com/seg/analytics-next/bundles/schemaFilter.bundle.debb169c1abb431faaa6.js"
       ),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       mockContext
     );
     expect(resp?.status).toBe(200);
@@ -57,7 +57,7 @@ describe("asset proxy", () => {
       new Request(
         "https://sushi-shop.com/seg/next-integrations/actions/edge_sdk/ed984d68b220640a83ac.js"
       ),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       mockContext
     );
     expect(resp?.status).toBe(200);
@@ -70,7 +70,7 @@ describe("asset proxy", () => {
       new Request(
         "https://sushi-shop.com/seg/next-integrations/integrations/edge/2.2.4/edge.dynamic.js.gz"
       ),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       mockContext
     );
     expect(resp?.status).toBe(200);

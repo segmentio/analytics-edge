@@ -93,16 +93,14 @@ export class Router {
     };
   }
 
-  async handle(
-    request: Request
-  ): Promise<[Request, Response | undefined, RouterContext]> {
+  async handle(request: Request): Promise<[Request, Response, RouterContext]> {
     const url = new URL(request.url);
     const method = request.method.toLowerCase() as Method;
     const originalRequest = request;
     const path = url.pathname;
     const { route, params } = this.matchRoute(path, method);
     const handlers = this.handlers[route];
-    let response: Response | undefined = undefined;
+    let response = new Response("Unhandled", { status: 501 });
     let context: RouterContext = {
       ...this.defaultRouterContext,
       params,

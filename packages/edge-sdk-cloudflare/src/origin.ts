@@ -1,7 +1,7 @@
 import { HandlerFunction } from "./types";
 
 export const handleOrigin: HandlerFunction = async (request, response, ctx) => {
-  if (response) {
+  if (response && response.status === 200) {
     return [request, response, ctx];
   } else {
     const resp = await fetch(request);
