@@ -104,6 +104,24 @@ export const mockSushiShop = () => {
       path: "/logo.png",
     })
     .reply(200, "🎨", { headers: { "content-type": "image/png" } });
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "/cool-menu",
+    })
+    .reply(200, wrapInHTML("Super Cool Sushi Menu!"), {
+      headers: { "content-type": "text/html" },
+    });
+
+  origin
+    .intercept({
+      method: "GET",
+      path: "/not-so-cool-menu",
+    })
+    .reply(200, wrapInHTML("Regular Sushi Menu!"), {
+      headers: { "content-type": "text/html" },
+    });
 };
 
 export const mockTapi = () => {
@@ -126,6 +144,32 @@ export const mockTapi = () => {
       },
     })
     .reply(200, "Success!");
+};
+
+export const mockProfilesApi = (personasSpaceId: string) => {
+  // @ts-ignore
+  const fetchMock = getMiniflareFetchMock();
+  //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
+
+  fetchMock.disableNetConnect();
+
+  const origin = fetchMock.get(`https://profiles.segment.com`);
+  origin
+    .intercept({
+      method: "GET",
+      path: `/v1/spaces/${personasSpaceId}/collections/users/profiles/user_id:sloth/traits?limit=200&class=audience`,
+    })
+    .reply(200, sampleProfilesAPIResponse);
+
+  origin
+    .intercept({
+      method: "GET",
+      path: `/v1/spaces/${personasSpaceId}/collections/users/profiles/user_id:racoon/traits?limit=200&class=audience`,
+    })
+    .reply(200, {
+      ...sampleProfilesAPIResponse,
+      traits: { cool_people: false },
+    });
 };
 
 const wrapInHTML = (content: string) => `<!doctype html>
@@ -173,4 +217,18 @@ export const samplePersonasIncomingRequest = {
   userId: "coolio",
   version: 2,
   writeKey: "THIS_IS_A_WRITE_KEY",
+};
+
+export const sampleProfilesAPIResponse = {
+  traits: {
+    cool_people: true,
+    mac_user: true,
+    vancouver_crew: true,
+  },
+  cursor: {
+    url: "",
+    has_more: false,
+    next: "",
+    limit: 200,
+  },
 };

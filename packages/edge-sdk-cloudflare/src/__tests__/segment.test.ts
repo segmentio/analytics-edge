@@ -9,6 +9,7 @@ import { Router } from "../router";
 import { Segment } from "../segment";
 import {
   mockContext,
+  mockProfilesApi,
   mockSegmentCDN,
   mockSushiShop,
   mockTapi,
@@ -432,5 +433,246 @@ describe("integration tests: Personas webhook", () => {
     expect(resp?.status).toBe(200);
     const data = await Profiles.get(samplePersonasIncomingRequest.userId);
     expect(JSON.parse(data)).toEqual(JSON.parse('{"cool_people":false}'));
+  });
+});
+
+describe("integration tests: Client-side traits", () => {
+  //@ts-ignore
+  const { PROFILES_TEST_NAMESPACE: Profiles } = getMiniflareBindings();
+
+  beforeEach(async () => {
+    mockProfilesApi("123");
+    mockSegmentCDN();
+  });
+
+  it("Client-side traits: queries profiles API if the profile does not exist on Edge", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+        personasSpaceId: "123",
+        personasToken: "nah",
+      },
+      {}
+    );
+    segment.clientSideTraits((t) => ({
+      cool: t.cool_people,
+    }));
+
+    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=sloth; ajs_anonymous_id=xyz",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain('{"cool":true}');
+  });
+
+  it("Client-side traits: Stores full profile on the edge after querying profile API", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+        personasSpaceId: "123",
+        personasToken: "nah",
+      },
+      {}
+    );
+    segment.clientSideTraits((t) => ({
+      cool: t.cool_people,
+    }));
+
+    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=sloth; ajs_anonymous_id=xyz",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const profile = await Profiles.get("user_id:sloth");
+    expect(profile).toBe(
+      '{"cool_people":true,"mac_user":true,"vancouver_crew":true}'
+    );
+  });
+
+  it("Client-side traits: Can use the profile info from the Edge", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+        personasSpaceId: "123",
+        personasToken: "nah",
+      },
+      {}
+    );
+    segment.clientSideTraits((t) => ({
+      cool: t.cool_people,
+    }));
+
+    // Profile is already stored on the edge and different from what profile API returns
+    await Profiles.put("user_id:sloth", '{"cool_people":false}');
+    // Profile on the edge, but not exist on profile API
+    await Profiles.put("user_id:ghost", '{"cool_people":true}');
+
+    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=sloth; ajs_anonymous_id=xyz",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain('{"cool":false}');
+
+    request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=ghost; ajs_anonymous_id=xyz",
+      },
+    });
+    resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toContain('{"cool":true}');
+  });
+});
+
+describe("integration tests: Variations", () => {
+  //@ts-ignore
+  const { PROFILES_TEST_NAMESPACE: Profiles } = getMiniflareBindings();
+
+  beforeEach(async () => {
+    mockProfilesApi("123");
+    mockSegmentCDN();
+    mockSushiShop();
+  });
+
+  it("Variations: queries profiles API and delivers the personalized content", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+        personasSpaceId: "123",
+        personasToken: "nah",
+      },
+      {}
+    );
+    segment.registerVariation("/menu", (t) => {
+      return t.cool_people ? "cool-menu" : "not-so-cool-menu";
+    });
+
+    // sloth receives the super cool sushi menu
+    let request = new Request("https://sushi-shop.com/menu", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=sloth;",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Super Cool Sushi Menu!");
+
+    // racoon receives the regular sushi menu
+    request = new Request("https://sushi-shop.com/menu", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=racoon;",
+      },
+    });
+    resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toContain("Regular Sushi Menu!");
+  });
+
+  it("Variations: use the Edge DB to deliver personalized content", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+        personasSpaceId: "123",
+        personasToken: "nah",
+      },
+      {}
+    );
+    segment.registerVariation("/menu", (t) => {
+      return t.good_tippers ? "cool-menu" : "not-so-cool-menu";
+    });
+
+    // add profiles to the edge DB
+    await Profiles.put("user_id:jimmy", '{"good_tippers":false}');
+    await Profiles.put("user_id:joe", '{"good_tippers":true}');
+
+    // sloth receives the super cool sushi menu
+    let request = new Request("https://sushi-shop.com/menu", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=joe;",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Super Cool Sushi Menu!");
+
+    // racoon receives the regular sushi menu
+    request = new Request("https://sushi-shop.com/menu", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=jimmy;",
+      },
+    });
+    resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toContain("Regular Sushi Menu!");
+  });
+
+  it("Variations: delivers default content if Profile doesn't exist and variation function returns undefined", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+        personasSpaceId: "123",
+        personasToken: "nah",
+      },
+      {}
+    );
+    segment.registerVariation("/menu", (t) => {
+      if (!t) {
+        return undefined;
+      }
+      return t.cool_people ? "cool-menu" : "not-so-cool-menu";
+    });
+
+    // sloth receives the super cool sushi menu
+    let request = new Request("https://sushi-shop.com/menu", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=tim;",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain("Sushi Menu!");
   });
 });
