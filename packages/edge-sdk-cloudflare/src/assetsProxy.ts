@@ -38,7 +38,7 @@ export const appendIdCallsToAJS: HandlerFunction = async (
   response,
   ctx
 ) => {
-  if (!response) {
+  if (response.status !== 200) {
     return [request, response, ctx];
   }
 
@@ -72,7 +72,7 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
   response,
   ctx
 ) => {
-  if (!response) {
+  if (response.status !== 200) {
     return [request, response, ctx];
   }
 
@@ -117,7 +117,7 @@ export const configureApiHost: HandlerFunction = async (
   response,
   ctx
 ) => {
-  if (!response) {
+  if (response.status !== 200) {
     return [request, response, ctx];
   }
 
@@ -132,7 +132,7 @@ export const configureApiHost: HandlerFunction = async (
 };
 
 export const handleCORS: HandlerFunction = async (request, response, ctx) => {
-  if (!response) {
+  if (response.status !== 200) {
     return [request, response, ctx];
   }
 

@@ -12,7 +12,7 @@ describe("origin handlers", () => {
     const request = new Request("https://sushi-shop.com/");
     const [req, resp, context] = await handleOrigin(
       request,
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       mockContext
     );
     expect(resp?.status).toBe(200);
@@ -45,15 +45,15 @@ describe("origin handlers", () => {
 
     let [req, resp, ctx] = await handleOriginWithEarlyExit(
       new Request("https://sushi-shop.com/"),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       context
     );
-    expect(resp).toBeUndefined();
+    expect(resp.status).toBe(500);
     expect(ctx.earlyExit).toBeFalsy();
 
     [req, resp, ctx] = await handleOriginWithEarlyExit(
       new Request("https://sushi-shop.com/menu"),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       context
     );
     expect(resp).toBeDefined();
@@ -64,7 +64,7 @@ describe("origin handlers", () => {
   it("handleOriginWithEarlyExit does an early exist for non text/html content", async () => {
     let [req, resp, ctx] = await handleOriginWithEarlyExit(
       new Request("https://sushi-shop.com/logo.png"),
-      undefined,
+      new Response("Unhandled Rejection", { status: 500 }),
       mockContext
     );
 

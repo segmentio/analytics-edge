@@ -31,11 +31,9 @@ export interface RouterContext {
 }
 
 export interface HandlerFunction {
-  (
-    request: Request,
-    response: Response | undefined,
-    context: RouterContext
-  ): Promise<[Request, Response | undefined, RouterContext]>;
+  (request: Request, response: Response, context: RouterContext): Promise<
+    [Request, Response, RouterContext]
+  >;
 }
 
 /**
