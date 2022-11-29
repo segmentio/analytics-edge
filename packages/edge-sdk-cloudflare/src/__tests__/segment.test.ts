@@ -436,6 +436,33 @@ describe("integration tests: Proxy TAPI", () => {
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toContain("Success!");
   });
+
+  it("Supports custom TAPI endpoint", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        trackingApiEndpoint: "https://api.custom.io/v1",
+      },
+      { redactWritekey: false, edgeContext: false }
+    );
+
+    let request = new Request("https://sushi-shop.com/tester/evs/t", {
+      method: "POST",
+      body: JSON.stringify({
+        type: "track",
+        event: "test",
+        properties: {},
+        writeKey: "THIS_IS_A_WRITE_KEY",
+      }),
+    });
+
+    let resp = await segment.handleEvent(request);
+
+    // AJS is available on the first party domain
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toContain("Success from custom endpoint!");
+  });
 });
 
 describe("integration tests: Personas webhook", () => {
