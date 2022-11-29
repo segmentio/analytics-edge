@@ -10,16 +10,13 @@ type Env = {
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const segment = new Segment(
-      {
-        writeKey: env.SEGMENT_WRITE_KEY,
-        personasSpaceId: env.PERSONAS_SPACE_ID,
-        routePrefix: "wut",
-        personasToken: env.PERSONAS_TOKEN,
-        profilesStorage: env.Profiles,
-      },
-      {}
-    );
+    const segment = new Segment({
+      writeKey: env.SEGMENT_WRITE_KEY,
+      personasSpaceId: env.PERSONAS_SPACE_ID,
+      routePrefix: "wut",
+      personasToken: env.PERSONAS_TOKEN,
+      profilesStorage: env.Profiles,
+    });
 
     segment.registerVariation("/", (audiences) => {
       if (!audiences) {
