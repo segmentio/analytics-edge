@@ -107,7 +107,7 @@ export class Router {
     };
 
     if (!handlers) {
-      return Promise.reject("No handlers for route");
+      return [originalRequest, response, context];
     }
 
     context.logger.log(
