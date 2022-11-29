@@ -242,6 +242,31 @@ export const samplePersonasIncomingRequest = {
   writeKey: "THIS_IS_A_WRITE_KEY",
 };
 
+export const samplePersonasIncomingUnsupportedRequest = {
+  context: {
+    library: {
+      name: "unknown",
+      version: "unknown",
+    },
+    personas: {
+      computation_class: "audience",
+      computation_id: "3232",
+      computation_key: "23",
+      namespace: "3232",
+      space_id: "3232",
+    },
+  },
+  type: "track",
+  source_id: "XYZ",
+  message_id: "personas_12345",
+  timestamp: "2022-11-22T11:26:30.05Z",
+  properties: {
+    audience_key: "cool_people",
+    cool_people: true,
+  },
+  event: "Audience Entered",
+};
+
 export const sampleProfilesAPIResponse = {
   traits: {
     cool_people: true,

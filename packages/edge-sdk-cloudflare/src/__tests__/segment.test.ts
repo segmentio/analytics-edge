@@ -14,6 +14,7 @@ import {
   mockSushiShop,
   mockTapi,
   samplePersonasIncomingRequest,
+  samplePersonasIncomingUnsupportedRequest,
 } from "./mocks";
 
 describe("integration tests: Proxy Origin", () => {
@@ -121,7 +122,7 @@ describe("integration tests: AJS snippet injection", () => {
     expect(data).toContain("Hello from Sushi Shop 🍣"); // page content is rendered
   });
 
-  it("Avoid AJS snippet injection with non-200 responses", async () => {
+  it("Avoid AJS snippet injection into non-200 responses from origin", async () => {
     let segment = new Segment({ writeKey: "X", routePrefix: "tester" }, {});
 
     const request = new Request(
@@ -135,7 +136,7 @@ describe("integration tests: AJS snippet injection", () => {
 
     expect(resp?.status).toBe(404);
     const data = await resp?.text();
-    expect(data).toContain("Not found"); // page content is rendered
+    expect(data).toContain("Not found");
   });
 });
 
@@ -519,6 +520,87 @@ describe("integration tests: Personas webhook", () => {
     const data = await Profiles.get(samplePersonasIncomingRequest.userId);
     expect(JSON.parse(data)).toEqual(JSON.parse('{"cool_people":false}'));
   });
+
+  it("Returns 403 if storage is not setup", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+      },
+      {}
+    );
+    const request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(403);
+  });
+
+  it("Returns 403 if incoming webhook sends a track call", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+      },
+      {}
+    );
+    const request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify(samplePersonasIncomingUnsupportedRequest),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(403);
+  });
+
+  it("Returns 501 if feature is not setup", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+      },
+      {
+        engageIncomingWebhook: false,
+      }
+    );
+    const request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify(samplePersonasIncomingUnsupportedRequest),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(501);
+  });
+
+  it("For non-audience payloads, it gracefully returns without acting on the webhook", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+      },
+      {}
+    );
+    const request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify({
+        ...samplePersonasIncomingRequest,
+        context: {
+          ...samplePersonasIncomingRequest.context,
+          personas: { computation_class: "traits" },
+        },
+      }),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(200);
+    const data = await Profiles.get(samplePersonasIncomingRequest.userId);
+    expect(data).toBe(null);
+  });
 });
 
 describe("integration tests: Client-side traits", () => {
@@ -630,6 +712,34 @@ describe("integration tests: Client-side traits", () => {
 
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toContain('{"cool":true}');
+  });
+
+  it("Client-side traits: doesn't add any traits if no client-side trait function provided", async () => {
+    let segment = new Segment(
+      {
+        writeKey: "THIS_IS_A_WRITE_KEY",
+        routePrefix: "tester",
+        profilesStorage: Profiles,
+        personasSpaceId: "123",
+        personasToken: "nah",
+      },
+      {}
+    );
+
+    await Profiles.put("user_id:sloth", '{"cool_people":false}');
+
+    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+      headers: {
+        host: "sushi-shop.com",
+        cookie: "ajs_user_id=sloth; ajs_anonymous_id=xyz",
+      },
+    });
+    let resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).not.toContain('{"cool":false}');
+    expect(data).toContain(';analytics.identify("sloth");');
   });
 });
 

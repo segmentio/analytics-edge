@@ -49,7 +49,7 @@ describe("personas handler", () => {
 
     const [req, resp, context] = await extractProfileFromEdge(
       request,
-      new Response("Unhandled Rejection", { status: 500 }),
+      new Response("Unhandled Rejection", { status: 501 }),
       { ...mockContext, userId: "1234" }
     );
 
@@ -67,7 +67,7 @@ describe("personas handler", () => {
 
     const [req, resp, context] = await extractProfileFromEdge(
       request,
-      new Response("Unhandled Rejection", { status: 500 }),
+      new Response("Unhandled Rejection", { status: 501 }),
       mockContext
     );
 
@@ -85,7 +85,7 @@ describe("personas handler", () => {
 
     const [req, resp, context] = await extractProfileFromSegment(
       request,
-      new Response("Unhandled Rejection", { status: 500 }),
+      new Response("Unhandled Rejection", { status: 501 }),
       { ...mockContext, userId: "abc" }
     );
 
