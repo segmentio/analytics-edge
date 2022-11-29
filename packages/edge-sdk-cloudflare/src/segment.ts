@@ -119,6 +119,7 @@ export class Segment {
       traitsFunc: (f) => this.traitsFunc(f),
       variations: this.variations,
       logger: this.logger,
+      host: "",
     });
     this.features = { ...sdkDefaultFeatures, ...features };
   }

@@ -101,9 +101,11 @@ export class Router {
     const { route, params } = this.matchRoute(path, method);
     const handlers = this.handlers[route];
     let response = new Response("Unhandled", { status: 501 });
+    const host = request.headers.get("host") || url.host;
     let context: RouterContext = {
       ...this.defaultRouterContext,
       params,
+      host,
     };
 
     if (!handlers) {

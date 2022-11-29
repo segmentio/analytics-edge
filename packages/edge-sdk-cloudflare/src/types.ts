@@ -18,6 +18,7 @@ export interface UserIdentity {
 export interface RouterContext {
   settings: EdgeSDKSettings;
   logger: Logger;
+  host: string;
   earlyExit?: boolean;
   anonymousId?: string;
   userId?: string;
