@@ -194,6 +194,18 @@ export const mockProfilesApi = (personasSpaceId: string) => {
       ...sampleProfilesAPIResponse,
       traits: { cool_people: false },
     });
+
+  origin
+    .intercept({
+      method: "GET",
+      path: `/v1/spaces/${personasSpaceId}/collections/users/profiles/user_id:tim/traits?limit=200&class=audience`,
+    })
+    .reply(404, {
+      error: {
+        code: "not_found",
+        message: "the resource was not found",
+      },
+    });
 };
 
 const wrapInHTML = (content: string) => `<!doctype html>
