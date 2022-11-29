@@ -92,7 +92,10 @@ export class Segment {
     return this._traitsFunc;
   }
 
-  constructor(settings: EdgeSDKSettings, features: Partial<EdgeSDKFeatures>) {
+  constructor(
+    settings: EdgeSDKSettings,
+    features: Partial<EdgeSDKFeatures> = {}
+  ) {
     const {
       writeKey,
       routePrefix,
