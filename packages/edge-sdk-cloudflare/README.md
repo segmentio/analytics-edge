@@ -26,9 +26,7 @@ export default {
         personasSpaceId: env.PERSONAS_SPACE_ID,
         personasToken: env.PERSONAS_TOKEN
         routePrefix: "segment",
-        },
-        env,
-        {}
+        }
     );
 
     const resp = await segment.handleEvent(request, env);
@@ -39,7 +37,7 @@ export default {
 
 ## How to configure your worker
 
-The Cloudflare Worker than runs the Edge SDK can be configured using two methods:
+Edge SDK requires you to setup a Cloudflare Worker. You can choose one of the following two methods to setup your worker:
 
 **Running as a full proxy on your domain**
 This approach allows the worker to intercept all the request to your website, and subsequently offer few features:
@@ -48,7 +46,65 @@ This approach allows the worker to intercept all the request to your website, an
 - Allow delivering personalized content
 
 To run as a full-proxy, you have to deploy your worker using [Routes](https://developers.cloudflare.com/workers/platform/triggers/routes/). Follow these instructions to setup your worker:
-[TBD]
+
+- As a pre-requisit, you need to have a Cloudflare account, and already added your domain to Cloudflare, and Cloudflare is able to resolve your domain. Use [these instructions](<https://developers.cloudflare.com/learning-paths/get-started/#domain-resolution-(active-website)>) to setup your website with Cloudflare.
+
+- Follow the [Get Started Guide](https://developers.cloudflare.com/workers/get-started/guide/) to setup a Cloudflare worker.
+
+- Install the Segment Edge SDK
+
+```
+yarn add @segment/edge-sdk-cloudflare
+```
+
+- Update your worker code as follows
+
+```diff
++ import { Segment } from "@segment/edge-sdk-cloudflare";
+
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+-    return new Response("Hello World!");
++    const segment = new Segment(
++      {
++        writeKey: "***REMOVED***",
++        routePrefix: "magic",
++        logLevels: ["error", "warn", "info", "debug"],
++      },
++      {
++        useProfilesAPI: false,
++        ajsInjection: true,
++        edgeVariations: false,
++        clientSideTraits: false,
++        proxyOrigin: true,
++      }
++    );
++
++    const resp = await segment.handleEvent(request);
++    return resp;
+  },
+};
+
+```
+
+- Update `wrangler.toml` file so that the worker intercepts requests to the website
+
+```diff
+name = '...'
+main = "src/index.ts"
+
++ route = "www.your_website.com/*"
+```
+
+- Deploy the worker
+
+```
+wrangler publish
+```
 
 **Running on a sub-domain**
 This approach runs the worker on a sub-domain, and the worker will only be responsible for first-party delivery of AJS, and delivering client-side traits. But given the worker won’t have access to individual pages, features such as Edge personalization or Automatic AJS injection won’t be available.
