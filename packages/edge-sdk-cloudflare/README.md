@@ -1,55 +1,29 @@
 # Segment Edge SDK for Cloudflare Workers
 
+There are two “unsolved” problem with app instrumentation today:
+
+**Problem #1:** Many important events that you want to track happen on the “wild-west” of the client, but collecting those events via the client can lead to low data quality, as events are dropped due to user configurations, browser limitations, and network connectivity issues.
+
+**Problem #2:** Applications need access to realtime (<50ms) user state to personalize the application experience based on advanced computations and segmentation logic that must be executed on the cloud.
+
+The Segment Edge SDK – built on Cloudflare Workers – solves for both. With Segment Edge SDK, developers can collect high-quality first-party data. Developers can also use Segment Edge SDK to access realtime user profiles and state, to deliver personalized app experiences without managing a ton of infrastructure.
+
 ## Getting Started
-
-Basic worker code:
-
-```typescript
-export default {
-  async fetch(request, env) {
-    return new Response("Hello World!");
-  },
-};
-```
-
-Usage with Segment SDK:
-
-```typescript
-import { Segment } from "@segment/edge-sdk-cloudflare";
-import type { Env as SDKEnv } from "@segment/edge-sdk-cloudflare";
-
-export default {
-    async fetch(request, env) {
-    const segment = new Segment(
-        {
-        writeKey: env.SEGMENT_WRITE_KEY,
-        personasSpaceId: env.PERSONAS_SPACE_ID,
-        personasToken: env.PERSONAS_TOKEN
-        routePrefix: "segment",
-        }
-    );
-
-    const resp = await segment.handleEvent(request, env);
-    return resp;
-    },
-};
-```
-
-## How to configure your worker
 
 Edge SDK requires you to setup a Cloudflare Worker. You can choose one of the following two methods to setup your worker:
 
-**Running as a full proxy on your domain**
-This approach allows the worker to intercept all the request to your website, and subsequently offer few features:
+### Running as a full proxy on your main domain
 
-- Inject AJS to the web-pages on your website
+This approach allows the worker to intercept all the request to your website, and subsequently offer few features that are unique to this installation method:
+
+- Automatically inject AJS to every web-pages on your website
 - Allow delivering personalized content
 
 To run as a full-proxy, you have to deploy your worker using [Routes](https://developers.cloudflare.com/workers/platform/triggers/routes/). Follow these instructions to setup your worker:
 
-- As a pre-requisit, you need to have a Cloudflare account, and already added your domain to Cloudflare, and Cloudflare is able to resolve your domain. Use [these instructions](<https://developers.cloudflare.com/learning-paths/get-started/#domain-resolution-(active-website)>) to setup your website with Cloudflare.
+✋ As a pre-requisit, you need to sign-up for a Cloudflare account, and add your domain to Cloudflare so that Cloudflare is able to resolve your domain. Use [these instructions](<https://developers.cloudflare.com/learning-paths/get-started/#domain-resolution-(active-website)>) to setup your website with Cloudflare.
 
-1- Follow the [Get Started Guide](https://developers.cloudflare.com/workers/get-started/guide/) to setup a Cloudflare worker.
+1- Follow the [Get Started Guide](https://developers.cloudflare.com/workers/get-started/guide/) to setup a basic Cloudflare worker using Wrangler, and by choosing the default options offered by Wrangler during the setup.
 
 2- Install the Segment Edge SDK
 
@@ -57,7 +31,7 @@ To run as a full-proxy, you have to deploy your worker using [Routes](https://de
 yarn add @segment/edge-sdk-cloudflare
 ```
 
-3- Update your worker code as follows
+3- Update your worker code (`index.ts`) as follows
 
 ```diff
 + import { Segment } from "@segment/edge-sdk-cloudflare";
@@ -72,7 +46,7 @@ export default {
 +    const segment = new Segment(
 +      {
 +        writeKey: "YOUR_WRITE_KEY",
-+        routePrefix: "magic",
++        routePrefix: "magic", // path prefix for serving Segment assets
 +        personasSpaceId: "...", // optional
 +        personasToken: "...", // optional
 +      }
@@ -85,7 +59,7 @@ export default {
 
 ```
 
-4- Update `wrangler.toml` file so that the worker intercepts requests to the website
+4- Update `wrangler.toml` file so that the worker intercepts requests to the website:
 
 ```diff
 name = '...'
@@ -99,6 +73,8 @@ main = "src/index.ts"
 ```
 wrangler publish
 ```
+
+🎉 Now if you visit your website, all the pages are automatically instrumented with analytics.js
 
 6- (Optional) Setup Cloudflare KV for Profiles Database
 
@@ -132,23 +108,49 @@ export default {
     return resp;
   },
 };
-
 ```
 
-**Running on a sub-domain**
-This approach runs the worker on a sub-domain, and the worker will only be responsible for first-party delivery of AJS, and delivering client-side traits. But given the worker won’t have access to individual pages, features such as Edge personalization or Automatic AJS injection won’t be available.
+### Running on a sub-domain
 
-To run the worker on a sub-domain you can deploy your worker using Custom Domains. Follow these instructions to setup your worker:
+This approach runs the worker on a sub-domain of yours, and the worker will only be responsible for first-party delivery of AJS, and delivering client-side traits. But the worker will not intercept individual pages on your main domain, and therefore features such as Personalization or Automatic AJS Injection won't be available.
+
+To run the worker on a sub-domain, you can deploy your worker using these instructions:
 1- Follow steps 1-3 from the previous section
-2- Update `wrangler.toml` file so that the worker intercepts requests to the website
+2- Update `wrangler.toml` file so that the worker is setup on a sub-domain in our zone
 
 ```diff
 name = '...'
 main = "src/index.ts"
 
 + routes = [
-+ 	{ pattern = "edge.your_website.com", custom_domain = true, zone_name = "your_website.com" }
++ 	{ pattern = "your_sub_domain.your_website.com", custom_domain = true, zone_name = "your_website.com" }
 + ]
+```
+
+3- Modify worker code to turn-off full proxy features:
+
+```diff
+    const segment = new Segment(
+      {
+        writeKey: "YOUR_WRITE_KEY",
+        routePrefix: "magic",
+        personasSpaceId: "...", // optional
+        personasToken: "...", // optional
+      },
+      {
++        ajsInjection: false,
++        edgeVariations: false,
++       proxyOrigin: false,
+      }
+    );
+
+```
+
+4- Since the AJS injection is not available, you have to add Segment snippet to your website manually. Make sure to modify the standard snippet so it points to your first-party domain:
+
+```diff
+- t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";
++ t.src="https://your_sub_domain.your_website.com/<your_prefix>/ajs/<random_uuid>"
 ```
 
 ## API
@@ -156,10 +158,25 @@ main = "src/index.ts"
 **Constructor**
 
 ```typescript
-const segment = new SegmentEdge(settings, features);
+const segment = new Segment(settings, features);
 ```
 
 Checkout the JSDoc on each settings, and features parameters.
+
+**`.handleEvent(request: Request)`**
+Returns: `Response`
+
+Accepts a Cloudflare incoming Request, and returns a response that could be AJS assets, response from Segment Tracking API, or response from the Origin.
+
+**`.registerVariation(route: string, evaluationFunction: VariationEvaluationFunction)`**
+Retruns: `undefined`
+
+Register a variation on the `route`. If a visitor navigates to `route`, we run the evaluationFunction, and fetch the path returned from the function instead of the `route`. If the evaluationFunction returns `undefined`, we then fetch the `route` from the origin.
+
+**`.clientSideTraits(traitsFunc: TraitsFunction)`**
+Returns: `undefined`
+
+Registers a function that transform the visitors full `audiences` list to a redacted version, and then deliver the redacted audiences to the client.
 
 ## SDK Features
 
