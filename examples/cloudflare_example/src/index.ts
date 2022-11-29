@@ -16,6 +16,7 @@ export default {
       routePrefix: "wut",
       personasToken: env.PERSONAS_TOKEN,
       profilesStorage: env.Profiles,
+      logLevels: ["error", "warn", "info", "debug"],
     });
 
     segment.registerVariation("/", (audiences) => {
