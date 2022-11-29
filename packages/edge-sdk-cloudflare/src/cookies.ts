@@ -16,7 +16,7 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
     return [request, response, context];
   }
 
-  const host = request.headers.get("host") || "";
+  const host = context.host;
   const domain = getDomain(host);
   const anonymousId = context.anonymousId || uuidv4();
   const userId = context.userId;

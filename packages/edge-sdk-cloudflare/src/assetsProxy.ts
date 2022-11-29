@@ -76,7 +76,7 @@ export const appendAJSCustomConfiguration: HandlerFunction = async (
     return [request, response, ctx];
   }
 
-  const host = request.headers.get("host") || "";
+  const host = ctx.host;
 
   const cdnConfiguration = `analytics._cdn = "https://${host}/${ctx.settings.routePrefix}";`;
 
@@ -121,7 +121,7 @@ export const configureApiHost: HandlerFunction = async (
     return [request, response, ctx];
   }
 
-  const host = request.headers.get("host") || "";
+  const host = ctx.host;
   const content = await response.text();
   const body = content.replace(
     /api.segment.io\/v1/g,

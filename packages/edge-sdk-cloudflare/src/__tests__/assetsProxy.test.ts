@@ -84,7 +84,7 @@ describe("asset proxy", () => {
         headers: { host: "sushi-shop.com" },
       }),
       new Response("The amazing AJS minified code!"),
-      mockContext
+      { ...mockContext, host: "sushi-shop.com" }
     );
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`

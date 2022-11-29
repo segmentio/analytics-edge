@@ -12,6 +12,7 @@ export const mockContext = {
     },
   },
   logger: { log: () => null } as any,
+  host: "",
 };
 
 export const mockSegmentCDN = () => {
