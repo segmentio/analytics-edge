@@ -31,9 +31,6 @@ export const enrichWithAJS: HandlerFunction = async (
   response,
   context
 ) => {
-  if (response.status !== 200) {
-    return [request, response, context];
-  }
   const {
     settings: { writeKey, routePrefix },
   } = context;
@@ -53,9 +50,6 @@ export const enrichWithAJSNoWriteKey: HandlerFunction = async (
   response,
   context
 ) => {
-  if (response.status !== 200) {
-    return [request, response, context];
-  }
   const {
     settings: { routePrefix },
   } = context;
