@@ -71,16 +71,8 @@ export default {
 -    return new Response("Hello World!");
 +    const segment = new Segment(
 +      {
-+        writeKey: "rLNeLldLBz1tJ9jOjTGeU8hEQywSaFhS",
++        writeKey: "YOUR_WRITE_KEY",
 +        routePrefix: "magic",
-+        logLevels: ["error", "warn", "info", "debug"],
-+      },
-+      {
-+        useProfilesAPI: false,
-+        ajsInjection: true,
-+        edgeVariations: false,
-+        clientSideTraits: false,
-+        proxyOrigin: true,
 +      }
 +    );
 +
