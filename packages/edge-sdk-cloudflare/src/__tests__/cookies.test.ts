@@ -16,12 +16,11 @@ import { mockContext } from "./mocks";
 const getResponseWithContext = async (context: Record<string, string>) =>
   (
     await enrichResponseWithIdCookies(
-      new Request("https://doest-not-matter.com/", {
-        headers: { host: "sushi-shop.com" },
-      }),
+      new Request("https://doest-not-matter.com/"),
       new Response(JSON.stringify({}), { headers: {} }),
       {
         ...mockContext,
+        host: "sushi-shop.com",
         ...context,
       }
     )
@@ -44,13 +43,12 @@ describe("cookies", () => {
 
   it("use top domain for the cookie", async () => {
     const [req, resp, context] = await enrichResponseWithIdCookies(
-      new Request("https://doest-not-matter.com/", {
-        headers: { host: "segment.sushi-shop.com" },
-      }),
+      new Request("https://doest-not-matter.com/"),
       new Response(JSON.stringify({}), { headers: {} }),
       {
         ...mockContext,
         userId: "abc",
+        host: "segment.sushi-shop.com",
       }
     );
 

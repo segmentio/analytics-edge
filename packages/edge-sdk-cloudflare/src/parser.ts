@@ -34,7 +34,7 @@ export const enrichWithAJS: HandlerFunction = async (
   const {
     settings: { writeKey, routePrefix },
   } = context;
-  const host = request.headers.get("host") || "";
+  const host = context.host;
 
   return [
     request,
@@ -53,7 +53,7 @@ export const enrichWithAJSNoWriteKey: HandlerFunction = async (
   const {
     settings: { routePrefix },
   } = context;
-  const host = request.headers.get("host") || "";
+  const host = context.host;
 
   return [
     request,
