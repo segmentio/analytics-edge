@@ -1,4 +1,4 @@
-import { Logger } from "./logger";
+import { Logger, LogLevel } from "./logger";
 import { Segment } from "./segment";
 
 export interface Storage {
@@ -73,6 +73,13 @@ export interface EdgeSDKSettings {
    *
    * */
   profilesStorage?: Storage;
+  /**
+   * Log levels for the SDK
+   * @default ["error", "warn", "info"]
+   * @example ["error", "warn", "info", "debug"]
+   *
+   * */
+  logLevels?: LogLevel[];
 }
 
 /**

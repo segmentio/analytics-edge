@@ -14,6 +14,7 @@ export default {
       {
         writeKey: env.SEGMENT_WRITE_KEY,
         routePrefix: "magic",
+        logLevels: ["error", "warn", "info", "debug"],
       },
       {
         useProfilesAPI: false,

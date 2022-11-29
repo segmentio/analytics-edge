@@ -42,7 +42,7 @@ import { Logger, LogLevel } from "./logger";
 const sdkDefaultSettings = {
   routePrefix: "seg",
   baseSegmentCDN: "https://cdn.segment.com",
-  logLevels: ["error", "warn", "info", "debug"] as LogLevel[],
+  logLevels: ["error", "warn", "info"] as LogLevel[],
 };
 
 const sdkDefaultFeatures: EdgeSDKFeatures = {
