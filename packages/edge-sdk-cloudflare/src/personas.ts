@@ -19,7 +19,11 @@ export const handlePersonasWebhook: HandlerFunction = async (
 ) => {
   if (!context.settings.profilesStorage) {
     context.logger.log("debug", "Profiles storage is not available");
-    return [request, response, context];
+    return [
+      request,
+      new Response("Storage not available", { status: 403 }),
+      context,
+    ];
   }
 
   let event = (await request.json()) as PersonasWebhookPayload;
@@ -28,7 +32,11 @@ export const handlePersonasWebhook: HandlerFunction = async (
     context.logger.log("debug", "Ignoring incoming webhook, not an identify", {
       event,
     });
-    return [request, new Response("", { status: 200 }), context];
+    return [
+      request,
+      new Response("Segment identify event not found.", { status: 403 }),
+      context,
+    ];
   }
 
   const {
@@ -41,7 +49,7 @@ export const handlePersonasWebhook: HandlerFunction = async (
     context.logger.log("debug", "Ignoring incoming webhook, not an audience", {
       event,
     });
-    return [request, new Response("", { status: 200 }), context];
+    return [request, new Response("Ok", { status: 200 }), context];
   }
 
   context.logger.log("debug", "Accepting incoming webhook", { event });
