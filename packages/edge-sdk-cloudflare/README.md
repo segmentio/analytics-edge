@@ -49,15 +49,15 @@ To run as a full-proxy, you have to deploy your worker using [Routes](https://de
 
 - As a pre-requisit, you need to have a Cloudflare account, and already added your domain to Cloudflare, and Cloudflare is able to resolve your domain. Use [these instructions](<https://developers.cloudflare.com/learning-paths/get-started/#domain-resolution-(active-website)>) to setup your website with Cloudflare.
 
-- Follow the [Get Started Guide](https://developers.cloudflare.com/workers/get-started/guide/) to setup a Cloudflare worker.
+1- Follow the [Get Started Guide](https://developers.cloudflare.com/workers/get-started/guide/) to setup a Cloudflare worker.
 
-- Install the Segment Edge SDK
+2- Install the Segment Edge SDK
 
 ```
 yarn add @segment/edge-sdk-cloudflare
 ```
 
-- Update your worker code as follows
+3- Update your worker code as follows
 
 ```diff
 + import { Segment } from "@segment/edge-sdk-cloudflare";
@@ -85,7 +85,7 @@ export default {
 
 ```
 
-- Update `wrangler.toml` file so that the worker intercepts requests to the website
+4- Update `wrangler.toml` file so that the worker intercepts requests to the website
 
 ```diff
 name = '...'
@@ -94,15 +94,16 @@ main = "src/index.ts"
 + route = "www.your_website.com/*"
 ```
 
-- Deploy the worker
+5- Deploy the worker
 
 ```
 wrangler publish
 ```
 
-- (Optional) Setup Cloudflare KV for Profiles Database
-  - Setup a KV using [these instructions](https://developers.cloudflare.com/workers/wrangler/workers-kv/#create-a-kv-namespace-with-wrangler)
-  - Update your worker code as follows:
+6- (Optional) Setup Cloudflare KV for Profiles Database
+
+- Setup a KV using [these instructions](https://developers.cloudflare.com/workers/wrangler/workers-kv/#create-a-kv-namespace-with-wrangler)
+- Update your worker code as follows:
 
 ```diff
 import { Segment } from "@segment/edge-sdk-cloudflare";
@@ -123,7 +124,7 @@ export default {
         routePrefix: "magic",
         personasSpaceId: "...", // optional
         personasToken: "...", // optional
-+       profilesStorage: env.DOCS_PROFILE_DB,
++       profilesStorage: env.MY_KV_NAMESPACE,
       }
     );
 
@@ -138,7 +139,17 @@ export default {
 This approach runs the worker on a sub-domain, and the worker will only be responsible for first-party delivery of AJS, and delivering client-side traits. But given the worker won’t have access to individual pages, features such as Edge personalization or Automatic AJS injection won’t be available.
 
 To run the worker on a sub-domain you can deploy your worker using Custom Domains. Follow these instructions to setup your worker:
-[TBD]
+1- Follow steps 1-3 from the previous section
+2- Update `wrangler.toml` file so that the worker intercepts requests to the website
+
+```diff
+name = '...'
+main = "src/index.ts"
+
++ routes = [
++ 	{ pattern = "edge.your_website.com", custom_domain = true, zone_name = "your_website.com" }
++ ]
+```
 
 ## API
 
