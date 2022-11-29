@@ -3,6 +3,7 @@ import { Router } from "./router";
 import {
   EdgeSDKFeatures,
   EdgeSDKSettings,
+  SegmentTrackingAPIEndpoint,
   Storage,
   TraitsFunction,
   VariationEvaluationFunction,
@@ -43,6 +44,7 @@ const sdkDefaultSettings = {
   routePrefix: "seg",
   baseSegmentCDN: "https://cdn.segment.com",
   logLevels: ["error", "warn", "info"] as LogLevel[],
+  trackingApiEndpoint: "https://api.segment.io/v1",
 };
 
 const sdkDefaultFeatures: EdgeSDKFeatures = {
@@ -72,6 +74,7 @@ export class Segment {
   private logger: Logger;
   private features: EdgeSDKFeatures;
   private profilesStorage?: Storage;
+  private trackingApiEndpoint: SegmentTrackingAPIEndpoint;
 
   get settings(): EdgeSDKSettings {
     return {
@@ -81,6 +84,7 @@ export class Segment {
       personasToken: this.personasToken,
       baseSegmentCDN: this.baseSegmentCDN,
       profilesStorage: this.profilesStorage,
+      trackingApiEndpoint: this.trackingApiEndpoint,
     };
   }
 
@@ -104,6 +108,7 @@ export class Segment {
       baseSegmentCDN,
       logLevels,
       profilesStorage,
+      trackingApiEndpoint,
     } = {
       ...sdkDefaultSettings,
       ...settings,
@@ -114,6 +119,7 @@ export class Segment {
     this.personasToken = personasToken;
     this.baseSegmentCDN = baseSegmentCDN;
     this.profilesStorage = profilesStorage;
+    this.trackingApiEndpoint = trackingApiEndpoint;
     this._variations = [];
     this._traitsFunc = (traits) => undefined;
     this.logger = new Logger(logLevels);

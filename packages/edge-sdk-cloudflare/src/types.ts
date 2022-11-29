@@ -80,6 +80,13 @@ export interface EdgeSDKSettings {
    *
    * */
   logLevels?: LogLevel[];
+  /**
+   * The Segment tracking API endpoint that will be used to send events to Segment
+   * @default "https://api.segment.io/v1"
+   * @example "https://events.eu1.segmentapis.com/v1"
+   *
+   * */
+  trackingApiEndpoint?: SegmentTrackingAPIEndpoint;
 }
 
 /**
@@ -169,3 +176,14 @@ export interface ProfileAPIPayload {
 export type TraitsFunction = (
   traits: Record<string, any>
 ) => Record<string, any> | undefined;
+
+export type SegmentTrackingAPIEndpoint =
+  /* Main us-west2 Segment Tracking API */
+  | "https://api.segment.io/v1"
+  /* EU Segment Tracking API */
+  | "https://events.eu1.segmentapis.com"
+  /* Custom Tracking API */
+  | Omit<
+      string,
+      "https://api.segment.io/v1" | "https://events.eu1.segmentapis.com"
+    >;

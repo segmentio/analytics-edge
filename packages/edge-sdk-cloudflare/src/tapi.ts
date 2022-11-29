@@ -46,7 +46,10 @@ export const handleTAPI: HandlerFunction = async (
   const parts = url.pathname.split("/");
   const method = parts.pop();
 
-  const resp = await fetch(`https://api.segment.io/v1/${method}`, request);
+  const resp = await fetch(
+    `${context.settings.trackingApiEndpoint}/${method}`,
+    request
+  );
 
   return [request, resp, context];
 };

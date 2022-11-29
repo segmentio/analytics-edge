@@ -5,6 +5,7 @@ export const mockContext = {
     personasSpaceId: "test",
     personasToken: "test",
     baseSegmentCDN: "https://cdn.segment.com",
+    trackingApiEndpoint: "https://api.segment.io/v1",
     profilesStorage: {
       get: jest.fn(),
       put: jest.fn(),
@@ -168,6 +169,14 @@ export const mockTapi = () => {
       },
     })
     .reply(200, "Success!");
+
+  fetchMock
+    .get("https://api.custom.io")
+    .intercept({
+      method: "POST",
+      path: (path: string) => path.startsWith("/v1"),
+    })
+    .reply(200, "Success from custom endpoint!");
 };
 
 export const mockProfilesApi = (personasSpaceId: string) => {
