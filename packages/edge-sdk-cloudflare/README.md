@@ -73,6 +73,8 @@ export default {
 +      {
 +        writeKey: "YOUR_WRITE_KEY",
 +        routePrefix: "magic",
++        personasSpaceId: "...", // optional
++        personasToken: "...", // optional
 +      }
 +    );
 +
@@ -96,6 +98,40 @@ main = "src/index.ts"
 
 ```
 wrangler publish
+```
+
+- (Optional) Setup Cloudflare KV for Profiles Database
+  - Setup a KV using [these instructions](https://developers.cloudflare.com/workers/wrangler/workers-kv/#create-a-kv-namespace-with-wrangler)
+  - Update your worker code as follows:
+
+```diff
+import { Segment } from "@segment/edge-sdk-cloudflare";
+
++ export interface Env {
++   MY_KV_NAMESPACE: KVNamespace;
++ }
+
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+    const segment = new Segment(
+      {
+        writeKey: "YOUR_WRITE_KEY",
+        routePrefix: "magic",
+        personasSpaceId: "...", // optional
+        personasToken: "...", // optional
++       profilesStorage: env.DOCS_PROFILE_DB,
+      }
+    );
+
+    const resp = await segment.handleEvent(request);
+    return resp;
+  },
+};
+
 ```
 
 **Running on a sub-domain**
