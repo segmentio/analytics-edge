@@ -96,6 +96,11 @@ export class Segment {
     return this._traitsFunc;
   }
 
+  /**
+   * Constructor for Segment Edge SDK
+   * @param {EdgeSDKSettings} settings - Settings for the SDK
+   * @param {Partial<EdgeSDKFeatures>} features - Features to enable/disable
+   */
   constructor(
     settings: EdgeSDKSettings,
     features: Partial<EdgeSDKFeatures> = {}
@@ -219,6 +224,11 @@ export class Segment {
     return resp;
   }
 
+  /**
+   * Register a variation on the `route`. If a visitor navigates to `route`, we run the evaluationFunction, and fetch the path returned from the function instead of the `route`. If the evaluationFunction returns `undefined`, we then fetch the `route` from the origin.
+   * @param {string} route - Route to register the variation on
+   * @param {VariationEvaluationFunction} evaluationFunction - Function that returns the variation path by evaluating the audience
+   */
   async registerVariation(
     route: string,
     evaluationFunction: VariationEvaluationFunction
@@ -229,6 +239,10 @@ export class Segment {
     });
   }
 
+  /**
+   * The SDK can expose a reduced set of user traits to the client. By using the `clientSideTraits` method, the Edge SDK transforms the `audiences` object to a reduced form that can be exposed to the client, and then sets the reduced audiences as a client-side trait in Analytics.js.
+   * @param {TraitsFunction} traitsFunction - Function that returns a client-side traits object by transforming the full audience object
+   */
   async clientSideTraits(func: TraitsFunction) {
     this._traitsFunc = func;
   }
