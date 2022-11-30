@@ -859,3 +859,27 @@ describe("integration tests: Variations", () => {
     expect(data).toContain("Sushi Menu!");
   });
 });
+
+describe("integration tests: Reset endpoint", () => {
+  beforeEach(() => {
+    mockTapi();
+  });
+
+  it("Resets the server-side cookies", async () => {
+    let segment = new Segment({
+      writeKey: "THIS_IS_A_WRITE_KEY",
+      routePrefix: "tester",
+    });
+
+    let request = new Request("https://sushi-shop.com/tester/reset");
+
+    let resp = await segment.handleEvent(request);
+
+    // AJS is available on the first party domain
+    expect(resp?.status).toBe(200);
+    expect(await resp?.text()).toContain("Success!");
+    expect(resp.headers.get("set-cookie")).toContain("ajs_anonymous_id=;");
+    expect(resp.headers.get("set-cookie")).toContain("ajs_user_id=;");
+    expect(resp.headers.get("set-cookie")).toContain("Max-Age=0;");
+  });
+});

@@ -13,7 +13,7 @@ export const mockContext = {
     },
   },
   logger: { log: () => null } as any,
-  host: "",
+  host: "sushi-shop.com",
 };
 
 export const mockSegmentCDN = () => {

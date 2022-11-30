@@ -3,6 +3,7 @@ import { HandlerFunction } from "./types";
 // Proxy AJS
 export const handleAJS: HandlerFunction = async (request, response, ctx) => {
   const url = `${ctx.settings.baseSegmentCDN}/analytics.js/v1/${ctx.settings.writeKey}/analytics.min.js`;
+
   const resp = await fetch(url);
   return [request, resp, ctx];
 };
@@ -57,10 +58,13 @@ export const appendIdCallsToAJS: HandlerFunction = async (
       : ""
   }`;
 
+  const resetHandler = `analytics.on('reset', function() { fetch('https://${ctx.host}/${ctx.settings.routePrefix}/reset', {credentials:"include"}) });`;
+
   let content = await response.text();
 
   const body = `
     ${anonymousCall}${idCall}
+    ${resetHandler}
     ${content}`;
 
   return [request, new Response(body, response), ctx];

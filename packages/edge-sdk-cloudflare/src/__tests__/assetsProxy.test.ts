@@ -78,7 +78,7 @@ describe("asset proxy", () => {
     expect(data).toBe("Edge SDK destination (Legacy) 👴");
   });
 
-  it("Enrich with CDN info", async () => {
+  it("Enrich with CDN handler info", async () => {
     const [req, resp, context] = await appendAJSCustomConfiguration(
       new Request("https://doest-not-matter.com", {
         headers: { host: "sushi-shop.com" },
@@ -106,6 +106,7 @@ describe("asset proxy", () => {
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
     analytics.setAnonymousId("👻");
+    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });
     The amazing AJS minified code!`);
   });
 
@@ -123,6 +124,7 @@ describe("asset proxy", () => {
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
     analytics.identify("👋");
+    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });
     The amazing AJS minified code!`);
   });
 
@@ -143,6 +145,7 @@ describe("asset proxy", () => {
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
     analytics.identify("👋", {"locale":"en"});
+    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });
     The amazing AJS minified code!`);
   });
 
