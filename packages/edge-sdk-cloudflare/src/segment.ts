@@ -13,6 +13,7 @@ import {
   extractIdFromCookie,
   extractIdFromPayload,
   getCookie,
+  resetCookies,
 } from "./cookies";
 import { enrichWithAJS, enrichWithAJSNoWriteKey } from "./parser";
 import {
@@ -217,6 +218,8 @@ export class Segment {
     if (features.engageIncomingWebhook) {
       router.register("personas", handlePersonasWebhook);
     }
+
+    router.register("reset", resetCookies);
 
     router.register("bypass", handleOrigin);
     const [_, resp, __] = await router.handle(request);

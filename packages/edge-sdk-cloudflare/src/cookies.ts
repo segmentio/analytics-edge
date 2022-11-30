@@ -61,6 +61,46 @@ export const enrichResponseWithIdCookies: HandlerFunction = async (
   return [request, newResponse, newContext];
 };
 
+export const resetCookies: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  const headers = new Headers(response.headers);
+  const domain = getDomain(context.host);
+  const origin = request.headers.get("origin") || `https://${domain}`;
+
+  headers.append(
+    "Set-Cookie",
+    stringify("ajs_anonymous_id", "", {
+      httponly: true,
+      path: "/",
+      maxage: 0, // 🪦 ajs_anonymous_id
+      domain,
+      samesite: "Lax",
+    })
+  );
+  headers.append(
+    "Set-Cookie",
+    stringify("ajs_user_id", "", {
+      httponly: true,
+      path: "/",
+      maxage: 0, // 🪦 ajs_user_id
+      domain,
+      samesite: "Lax",
+    })
+  );
+  headers.set("Access-Control-Allow-Credentials", "true");
+  headers.set("Access-Control-Allow-Origin", origin);
+
+  const newResponse = new Response("Success!", {
+    status: 200,
+    headers,
+  });
+
+  return [request, newResponse, context];
+};
+
 export const extractIdFromCookie: HandlerFunction = async (
   request,
   response,

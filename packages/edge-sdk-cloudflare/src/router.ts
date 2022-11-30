@@ -19,6 +19,7 @@ export type EdgeSDKKnownRoutes =
   | "personas"
   | "root"
   | "ajs"
+  | "reset"
   | "bypass";
 
 export class Router {
@@ -46,6 +47,7 @@ export class Router {
       ["post", "tapi", `${routePrefix}/evs/:method`],
       ["post", "personas", `${routePrefix}/personas`],
       ["get", "ajs", `${routePrefix}/ajs/:hash`],
+      ["get", "reset", `${routePrefix}/reset`],
       ["get", "root", `*`],
     ];
 
