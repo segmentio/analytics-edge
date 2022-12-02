@@ -204,26 +204,32 @@ The SDK will automatically capture the information available on the edge and inc
 
 ### Automatic Injection of AJS to pages ( `features.ajsInjection` )
 
-The SDK will automatically adds AJS snippet to the HEAD of each page.
+The SDK will automatically adds AJS snippet to the `<HEAD>` of each page.
 
 👉 This feature should only be used if the SDK is being used as a full proxy of the origin.
 
 ### Server-side Cookies ( `features.serverSideCookies` )
 
-The SDK will set `ajs_anonymous_id` and `ajs_user_id` cookies as HTTPOnly. This feature will be helpful in few instances:
+The Edge SDK will set ajs_anonymous_id and ajs_user_id cookies as HTTPOnly. This feature has several benefits:
 
-- Prevent Safari browsers from clearing those ids, as currently Safari limits the TTL of JS accessible storage to 7 days
+👉 It prevents Safari browsers from clearing those ids, as currently Safari limits the TTL of JS accessible storage to 7 days.
+👉 It prevents client-side code from accessing those identifiers.
+There are a few important considerations regarding the server-side cookies:
 
-There are few caveats around the server-side cookies:
-👉 Users visiting a website for the first time will get an `anonymousId` that is generated on the Edge, and is stored as HTTPOnly cookie
-👉 If user is already identified on a given browser ( has either of anonymousId or userId ), the Edge SDK will respect those identities, but convert those from client-side cookie to server-side cookie
-👉 If an identity of the user is updated through a call to `identify` / `track` / `page` / `group` methods, the identity is intially stored as a client-side cookie, and when the browser receives the response back from Edge, the cookie will be promoted to a server-side cookie
-👉 If the identity of the user is updated through `analytics.setAnonymousId()` or ` analytics.user().id(``'``…') `, the identity is initially set as a client-side cookie, and on the next request ( either a tracking call, or next time AJS loads ) the cookie is promoted to HTTPOnly cookie
-👉 If the identity of the user is cleared using `analytics.reset()`, then you have to send a subsequent tracking call to clear the HTTPOnly cookies ( TBD/Fix )
+There are a few important considerations regarding the server-side cookies:
+
+👉 Users visiting a website for the first time will receive an `anonymousId` that is generated on the Edge and stored as an HTTPOnly cookie.
+👉 If a user is already identified on a given browser (has either an `anonymousId` or `userId`), the Edge SDK will respect those identities but convert them from client-side cookies to server-side cookies.
+
+👉 If a user's identity is updated through a call to the `identify` / `track` / `page` / `group` methods, the identity is initially stored as a client-side cookie. When the browser receives the response from the Edge, the cookie is promoted to a server-side cookie.
+
+👉 If a user's identity is updated through `analytics.setAnonymousId()` or ` analytics.user().id(``'``…') `, the identity is initially set as a client-side cookie. On the next request (either a tracking call or when AJS loads again), the cookie is promoted to an HTTPOnly cookie.
+
+👉 If the identity of the user is cleared using `analytics.reset()`, the identity is initially cleared from the browser, and subsequently, browser notifies to worker to clear the server-side cookies.
 
 ### Redact writekeys ( `features.redactWritekey` )
 
-SDK can scrub the writekey from AJS, Settings, and calls to the tracking API, and then adds the writeKey to the events from the Edge. While writeKeys are public, you may choose to not expose the writeKeys on the browser.
+The Edge SDK has the ability to remove the writeKey from AJS, Settings, and calls to the tracking API, and then add the writeKey to events from the Edge. This allows you to keep your writeKey private and not expose it on the browser. Note that writeKeys are typically public, but this feature gives you the option to keep it hidden on the browser.
 
 ### Edge Variation ( `features.edgeVariations` )
 
