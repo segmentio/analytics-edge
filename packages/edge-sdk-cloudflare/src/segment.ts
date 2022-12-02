@@ -65,6 +65,8 @@ export class Segment {
   private routePrefix: string;
   private personasSpaceId: string | undefined;
   private personasToken: string | undefined;
+  private engageWebhookUsername: string | undefined;
+  private engageWebhookPassword: string | undefined;
   private router: Router;
   private baseSegmentCDN: string;
   private _variations: Array<{
@@ -83,6 +85,8 @@ export class Segment {
       routePrefix: this.routePrefix,
       personasSpaceId: this.personasSpaceId,
       personasToken: this.personasToken,
+      engageWebhookPassword: this.engageWebhookPassword,
+      engageWebhookUsername: this.engageWebhookUsername,
       baseSegmentCDN: this.baseSegmentCDN,
       profilesStorage: this.profilesStorage,
       trackingApiEndpoint: this.trackingApiEndpoint,
@@ -111,6 +115,8 @@ export class Segment {
       routePrefix,
       personasSpaceId,
       personasToken,
+      engageWebhookUsername,
+      engageWebhookPassword,
       baseSegmentCDN,
       logLevels,
       profilesStorage,
@@ -123,6 +129,8 @@ export class Segment {
     this.routePrefix = routePrefix;
     this.personasSpaceId = personasSpaceId;
     this.personasToken = personasToken;
+    this.engageWebhookUsername = engageWebhookUsername;
+    this.engageWebhookPassword = engageWebhookPassword;
     this.baseSegmentCDN = baseSegmentCDN;
     this.profilesStorage = profilesStorage;
     this.trackingApiEndpoint = trackingApiEndpoint;

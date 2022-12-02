@@ -87,6 +87,18 @@ export interface EdgeSDKSettings {
    *
    * */
   trackingApiEndpoint?: SegmentTrackingAPIEndpoint;
+  /**
+   * Username for engage incoming webhook. Should be used with password.
+   * @example "https://events.eu1.segmentapis.com/v1"
+   *
+   * */
+  engageWebhookUsername?: string;
+  /**
+   * Password for engage incoming webhook. Should be used with the username.
+   * @example "https://events.eu1.segmentapis.com/v1"
+   *
+   * */
+  engageWebhookPassword?: string;
 }
 
 /**
