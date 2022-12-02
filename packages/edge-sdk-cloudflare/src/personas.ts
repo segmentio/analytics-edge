@@ -31,7 +31,8 @@ export const handlePersonasWebhook: HandlerFunction = async (
   const encoded = authorization.split(" ")[1];
   const decoded = atob(encoded);
   const [username, password] = decoded.split(":");
-
+  console.log("username", username, context.settings.engageWebhookUsername);
+  console.log("password", password, context.settings.engageWebhookPassword);
   if (
     !username ||
     !password ||
@@ -82,7 +83,7 @@ export const handlePersonasWebhook: HandlerFunction = async (
   }
 
   context.logger.log("debug", "Accepting incoming webhook", { event });
-  const profile_index = `${userId}`;
+  const profile_index: UserProfileIndex = `user_id:${userId}`;
   const rawProfileData = await context.settings.profilesStorage.get(
     profile_index
   );
