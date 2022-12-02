@@ -78,40 +78,6 @@ wrangler publish
 
 🎉 Now if you visit your website, all the pages are automatically instrumented with analytics.js!
 
-6- (Optional) Setup Cloudflare KV for Profiles Database
-
-- Setup a KV using [these instructions](https://developers.cloudflare.com/workers/wrangler/workers-kv/#create-a-kv-namespace-with-wrangler)
-- Update your worker code as follows:
-
-```diff
-import { Segment } from "@segment/edge-sdk-cloudflare";
-
-+ export interface Env {
-+   MY_KV_NAMESPACE: KVNamespace;
-+ }
-
-export default {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext
-  ): Promise<Response> {
-    const segment = new Segment(
-      {
-        writeKey: "YOUR_WRITE_KEY",
-        routePrefix: "magic",
-        personasSpaceId: "...", // optional
-        personasToken: "...", // optional
-+       profilesStorage: env.MY_KV_NAMESPACE,
-      }
-    );
-
-    const resp = await segment.handleEvent(request);
-    return resp;
-  },
-};
-```
-
 ### Running on a dedicated sub-domain
 
 This approach runs the worker on a sub-domain of yours, and the worker will only be responsible for first-party delivery of AJS, and delivering client-side traits. But the worker will not intercept individual pages on your main domain, and therefore features such as Personalization or Automatic AJS Injection won't be available.
@@ -154,6 +120,78 @@ main = "src/index.ts"
 - t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";
 + t.src="https://your_sub_domain.your_website.com/<your_prefix>/ajs/<random_uuid>"
 ```
+
+### (Optional) Configuring Edge Storage for Storing Profiles
+
+You can setup Edge Storage to store profiles on Edge and use them for personalization or client-side traits feature. Follow these steps:
+
+1- Setup Cloudflare KV for Profiles Database
+
+- Setup a KV using [these instructions](https://developers.cloudflare.com/workers/wrangler/workers-kv/#create-a-kv-namespace-with-wrangler)
+- Update your worker code as follows:
+
+```diff
+import { Segment } from "@segment/edge-sdk-cloudflare";
+
++ export interface Env {
++   MY_KV_NAMESPACE: KVNamespace;
++ }
+
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+    const segment = new Segment(
+      {
+        writeKey: "YOUR_WRITE_KEY",
+        routePrefix: "magic",
+        personasSpaceId: "...", // optional
+        personasToken: "...", // optional
++       profilesStorage: env.MY_KV_NAMESPACE,
+      }
+    );
+
+    const resp = await segment.handleEvent(request);
+    return resp;
+  },
+};
+```
+
+2- Setup Profiles Sync, using both or one of the sync approaches explained in the next couple of sections.
+
+### Configure Profiles API Access
+
+Edge SDK can query Twilio Segment Profiles API to look for those profiles missing from the KV. Make sure you setup both `personasSpaceId` and `personasToken` settings correctly during the SDK initialization for this feature to work.
+
+### Configure Engage Incoming Webhook
+
+You can also configure a webhook for Twilio Engage to call in order to sync user traits to the Edge database. Follow these steps for configure your webhook:
+
+1- Initialize SDK with a webhook username and password
+
+```diff
+    const segment = new Segment(
+      {
+        writeKey: "YOUR_WRITE_KEY",
+        routePrefix: "magic",
+        personasSpaceId: "...", // optional
+        personasToken: "...", // optional
+        profilesStorage: env.MY_KV_NAMESPACE,
++       engageWebhookUsername: "" // choose a username
++       engageWebhookPassword: "" // choose a password
+      }
+    );
+```
+
+2- Goto your Segment workspace in `app.segment.com` and visit `Engage>Engage Settings` page
+3- Click on "+ Add Destination"
+4- Choose "Webhook" and connect it to your Personas source
+5- In the destination settings configure your Webhook URL as the URL of your website that runs the Edge SDK with following format `https://your_first_party_url/<routePrefix>/personas` and then add a `Authorization` header with the value of `Basic <base64 encoded value of username:password>`.
+6- Go to each of your Audiences that you like to sync with Edge, connect your webhook destination to the Audience, and make sure the destination is configured with "Send Identify".
+
+🎉 You are all set. Twilio Engage will start syncing your audiences with your worker!
 
 ## API
 
@@ -263,7 +301,7 @@ segment.clientSideTraits((audiences) => {
 
 ### Engage Incoming Webhook ( `features.engageIncomingWebhook` )
 
-This feature exposes a webhook that can be used by Twilio Engage to send audiences data to the Cloudflare worker.
+The `features.engageIncomingWebhook` option enables a webhook that can be used by Twilio Engage to send audience data to the Cloudflare worker. This feature is useful for integrating the Edge SDK with Twilio Engage, allowing you to use audience information from Twilio Engage in your personalization and other features powered by the Edge SDK.
 
 ### Using Profiles API for identity resolution ( `features.useProfilesAPI` )
 
