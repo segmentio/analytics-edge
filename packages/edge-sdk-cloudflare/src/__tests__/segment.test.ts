@@ -539,13 +539,15 @@ describe("integration tests: Personas webhook", () => {
 
     const resp = await segment.handleEvent(request);
     expect(resp?.status).toBe(200);
-    const data = await Profiles.get(samplePersonasIncomingRequest.userId);
+    const data = await Profiles.get(
+      `user_id:${samplePersonasIncomingRequest.userId}`
+    );
     expect(data).toBe('{"cool_people":true}');
   });
 
   it("Does not override the already existing audiences", async () => {
     await Profiles.put(
-      samplePersonasIncomingRequest.userId,
+      `user_id:${samplePersonasIncomingRequest.userId}`,
       '{"mac_users":true}'
     );
 
@@ -564,7 +566,9 @@ describe("integration tests: Personas webhook", () => {
 
     const resp = await segment.handleEvent(request);
     expect(resp?.status).toBe(200);
-    const data = await Profiles.get(samplePersonasIncomingRequest.userId);
+    const data = await Profiles.get(
+      `user_id:${samplePersonasIncomingRequest.userId}`
+    );
     expect(JSON.parse(data)).toEqual(
       JSON.parse('{"cool_people":true, "mac_users":true}')
     );
@@ -572,7 +576,7 @@ describe("integration tests: Personas webhook", () => {
 
   it("Updates existing audience", async () => {
     await Profiles.put(
-      samplePersonasIncomingRequest.userId,
+      `user_id:${samplePersonasIncomingRequest.userId}`,
       '{"cool_people":true}'
     );
 
@@ -594,7 +598,9 @@ describe("integration tests: Personas webhook", () => {
 
     const resp = await segment.handleEvent(request);
     expect(resp?.status).toBe(200);
-    const data = await Profiles.get(samplePersonasIncomingRequest.userId);
+    const data = await Profiles.get(
+      `user_id:${samplePersonasIncomingRequest.userId}`
+    );
     expect(JSON.parse(data)).toEqual(JSON.parse('{"cool_people":false}'));
   });
 
@@ -631,6 +637,37 @@ describe("integration tests: Personas webhook", () => {
 
     const resp = await segment.handleEvent(request);
     expect(resp?.status).toBe(403);
+  });
+
+  it("Synced data can be used later", async () => {
+    mockSegmentCDN();
+    let segment = new Segment({
+      writeKey: "THIS_IS_A_WRITE_KEY",
+      routePrefix: "tester",
+      profilesStorage: Profiles,
+      engageWebhookUsername: "username",
+      engageWebhookPassword: "password",
+    });
+
+    segment.clientSideTraits((traits) => traits);
+
+    let request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      headers: { authorization: `Basic ${btoa("username:password")}` },
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+
+    let resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(200);
+
+    request = new Request("https://sushi-shop.com/tester/ajs/123", {
+      method: "GET",
+      headers: { cookie: "ajs_user_id=coolio" },
+    });
+
+    resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(200);
+    expect(await resp.text()).toContain('"cool_people":true');
   });
 
   it("Returns 501 if feature is not setup", async () => {
