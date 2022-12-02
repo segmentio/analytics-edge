@@ -473,14 +473,67 @@ describe("integration tests: Personas webhook", () => {
     await Profiles.put("array", "test");
   });
 
-  it("Stores user profile if it does not exist in the storage", async () => {
+  it("401s if username/password missing or not matching", async () => {
+    let segment = new Segment({
+      writeKey: "THIS_IS_A_WRITE_KEY",
+      routePrefix: "tester",
+      profilesStorage: Profiles,
+      engageWebhookPassword: "password",
+      engageWebhookUsername: "username",
+    });
+
+    // no auth
+    let request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(401);
+
+    request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      headers: { authorization: `Basic ${btoa("wrong_username:password")}` },
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+    expect(resp?.status).toBe(401);
+
+    request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      headers: { authorization: `Basic ${btoa("username:wrong_password")}` },
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+    expect(resp?.status).toBe(401);
+  });
+
+  it("401s if username password is not configured, but also no auth is passed in", async () => {
     let segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
     });
+
+    // no auth
+    let request = new Request("https://sushi-shop.com/tester/personas", {
+      method: "POST",
+      body: JSON.stringify(samplePersonasIncomingRequest),
+    });
+
+    const resp = await segment.handleEvent(request);
+    expect(resp?.status).toBe(401);
+  });
+
+  it("Stores user profile if it does not exist in the storage", async () => {
+    let segment = new Segment({
+      writeKey: "THIS_IS_A_WRITE_KEY",
+      routePrefix: "tester",
+      profilesStorage: Profiles,
+      engageWebhookPassword: "password",
+      engageWebhookUsername: "username",
+    });
     const request = new Request("https://sushi-shop.com/tester/personas", {
       method: "POST",
+      headers: { authorization: `Basic ${btoa("username:password")}` },
       body: JSON.stringify(samplePersonasIncomingRequest),
     });
 
@@ -500,9 +553,12 @@ describe("integration tests: Personas webhook", () => {
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
+      engageWebhookUsername: "username",
+      engageWebhookPassword: "password",
     });
     const request = new Request("https://sushi-shop.com/tester/personas", {
       method: "POST",
+      headers: { authorization: `Basic ${btoa("username:password")}` },
       body: JSON.stringify(samplePersonasIncomingRequest),
     });
 
@@ -524,9 +580,12 @@ describe("integration tests: Personas webhook", () => {
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
+      engageWebhookPassword: "password",
+      engageWebhookUsername: "username",
     });
     const request = new Request("https://sushi-shop.com/tester/personas", {
       method: "POST",
+      headers: { authorization: `Basic ${btoa("username:password")}` },
       body: JSON.stringify({
         ...samplePersonasIncomingRequest,
         traits: { cool_people: false },
@@ -543,9 +602,12 @@ describe("integration tests: Personas webhook", () => {
     let segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
+      engageWebhookPassword: "password",
+      engageWebhookUsername: "username",
     });
     const request = new Request("https://sushi-shop.com/tester/personas", {
       method: "POST",
+      headers: { authorization: `Basic ${btoa("username:password")}` },
       body: JSON.stringify(samplePersonasIncomingRequest),
     });
 
@@ -558,9 +620,12 @@ describe("integration tests: Personas webhook", () => {
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
+      engageWebhookPassword: "password",
+      engageWebhookUsername: "username",
     });
     const request = new Request("https://sushi-shop.com/tester/personas", {
       method: "POST",
+      headers: { authorization: `Basic ${btoa("username:password")}` },
       body: JSON.stringify(samplePersonasIncomingUnsupportedRequest),
     });
 
@@ -593,9 +658,12 @@ describe("integration tests: Personas webhook", () => {
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
+      engageWebhookPassword: "password",
+      engageWebhookUsername: "username",
     });
     const request = new Request("https://sushi-shop.com/tester/personas", {
       method: "POST",
+      headers: { authorization: `Basic ${btoa("username:password")}` },
       body: JSON.stringify({
         ...samplePersonasIncomingRequest,
         context: {

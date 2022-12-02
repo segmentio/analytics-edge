@@ -17,6 +17,35 @@ export const handlePersonasWebhook: HandlerFunction = async (
   response,
   context
 ) => {
+  const headers = request.headers;
+  const authorization = headers.get("Authorization");
+  if (!authorization || !authorization.startsWith("Basic ")) {
+    context.logger.log("debug", "Basic authentication required");
+    return [
+      request,
+      new Response("Basic authentication required", { status: 401 }),
+      context,
+    ];
+  }
+  // extract username and password from the Authorization header
+  const encoded = authorization.split(" ")[1];
+  const decoded = atob(encoded);
+  const [username, password] = decoded.split(":");
+
+  if (
+    !username ||
+    !password ||
+    username !== context.settings.engageWebhookUsername ||
+    password !== context.settings.engageWebhookPassword
+  ) {
+    context.logger.log("debug", "Invalid basic authentication credentials");
+    return [
+      request,
+      new Response("Invalid basic authentication credentials", { status: 401 }),
+      context,
+    ];
+  }
+
   if (!context.settings.profilesStorage) {
     context.logger.log("debug", "Profiles storage is not available");
     return [
