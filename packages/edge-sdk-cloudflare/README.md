@@ -12,14 +12,11 @@ The Segment Edge SDK – built on Cloudflare Workers – solves for both. With S
 
 Edge SDK requires you to setup a Cloudflare Worker. You can choose one of the following two methods to setup your worker:
 
-### Running as a full proxy on your main domain
+### Running as a full reverse proxy on your main domain
 
-This approach allows the worker to intercept all the request to your website, and subsequently offer few features that are unique to this installation method:
+This approach allows the worker to intercept all the request to your website, and forward them to one or more backend servers (origins). This can be useful for delivering personalized content, as the worker can use information about the client, such as user identity or traits, to tailor the response from the backend server, such as delivering a customized version of the page to the client. Furthermore, the worker can automatically inject analytics.js to the webpages, in order to make instrumentation more seamless. 
 
-- Automatically inject AJS to every web-pages on your website
-- Allow delivering personalized content
-
-To run as a full-proxy, you have to deploy your worker using [Routes](https://developers.cloudflare.com/workers/platform/triggers/routes/). Follow these instructions to setup your worker:
+To run as a full reverse proxy, you have to deploy your worker using [Routes](https://developers.cloudflare.com/workers/platform/triggers/routes/). Follow these instructions to setup your worker:
 
 ✋ As a pre-requisit, you need to sign-up for a Cloudflare account, and add your domain to Cloudflare so that Cloudflare is able to resolve your domain. Use [these instructions](<https://developers.cloudflare.com/learning-paths/get-started/#domain-resolution-(active-website)>) to setup your website with Cloudflare.
 
