@@ -2,7 +2,7 @@
   "name": "@segment/cloudflare_example",
   "version": "0.0.0",
   "dependencies": {
-    "@segment/edge-sdk-cloudflare": "*"
+    "@segment/edge-sdk": "*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.16.0",

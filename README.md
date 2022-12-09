@@ -6,7 +6,7 @@ This is an official Segment Edge SDK monorepo. Versioning and package publishing
 
 ## Using with Cloudflare Workers
 
-Two examples are provided in [Examples folder](https://github.com/segmentio/analytics-edge/tree/main/examples). See [the full docs](https://github.com/segmentio/analytics-edge/blob/main/packages/edge-sdk-cloudflare/README.md) for details on how to use the Edge SDK with Cloudflare Workers.
+Two examples are provided in [Examples folder](https://github.com/segmentio/analytics-edge/tree/main/examples). See [the full docs](https://github.com/segmentio/analytics-edge/blob/main/packages/edge-sdk/README.md) for details on how to use the Edge SDK with Cloudflare Workers.
 
 # Contributing
 
