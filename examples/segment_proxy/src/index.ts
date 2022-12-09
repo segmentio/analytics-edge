@@ -1,4 +1,4 @@
-import { Segment } from "@segment/edge-sdk-cloudflare";
+import { Segment } from "@segment/edge-sdk";
 
 export interface Env {
   SEGMENT_WRITE_KEY: string;

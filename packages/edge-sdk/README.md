@@ -14,7 +14,7 @@ Edge SDK requires you to setup a Cloudflare Worker. You can choose one of the fo
 
 ### Running as a full reverse proxy on your main domain
 
-This approach allows the worker to intercept all the request to your website, and forward them to one or more backend servers (origins). This can be useful for delivering personalized content, as the worker can use information about the client, such as user identity or traits, to tailor the response from the backend server, such as delivering a customized version of the page to the client. Furthermore, the worker can automatically inject analytics.js to the webpages, in order to make instrumentation more seamless. 
+This approach allows the worker to intercept all the request to your website, and forward them to one or more backend servers (origins). This can be useful for delivering personalized content, as the worker can use information about the client, such as user identity or traits, to tailor the response from the backend server, such as delivering a customized version of the page to the client. Furthermore, the worker can automatically inject analytics.js to the webpages, in order to make instrumentation more seamless.
 
 To run as a full reverse proxy, you have to deploy your worker using [Routes](https://developers.cloudflare.com/workers/platform/triggers/routes/). Follow these instructions to setup your worker:
 
@@ -25,15 +25,15 @@ To run as a full reverse proxy, you have to deploy your worker using [Routes](ht
 2- Install the Segment Edge SDK in your worker project
 
 ```
-yarn add @segment/edge-sdk-cloudflare
+yarn add @segment/edge-sdk
 or
-npm install @segment/edge-sdk-cloudflare
+npm install @segment/edge-sdk
 ```
 
 3- Update your worker code (`index.ts`) as follows:
 
 ```diff
-+ import { Segment } from "@segment/edge-sdk-cloudflare";
++ import { Segment } from "@segment/edge-sdk";
 
 export default {
   async fetch(
@@ -128,7 +128,7 @@ You can setup Edge Storage to store profiles on Edge and use them for personaliz
 - Update your worker code as follows:
 
 ```diff
-import { Segment } from "@segment/edge-sdk-cloudflare";
+import { Segment } from "@segment/edge-sdk";
 
 + export interface Env {
 +   MY_KV_NAMESPACE: KVNamespace;
