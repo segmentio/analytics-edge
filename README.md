@@ -11,7 +11,6 @@ Two examples are provided in [Examples folder](https://github.com/segmentio/anal
 # Contributing
 
 ## Useful commands
-
 - `yarn build` - Build all packages and the example
 - `yarn dev` - Develop all packages and the example
 - `yarn lint` - Lint all packages
