@@ -62,7 +62,7 @@ describe("origin handlers", () => {
   });
 
   it("handleOriginWithEarlyExit does an early exist for non text/html content", async () => {
-    let [req, resp, ctx] = await handleOriginWithEarlyExit(
+    const [req, resp, ctx] = await handleOriginWithEarlyExit(
       new Request("https://sushi-shop.com/logo.png"),
       new Response("Unhandled Rejection", { status: 501 }),
       mockContext

@@ -24,7 +24,7 @@ describe("integration tests: Proxy Origin", () => {
   });
 
   it("Proxies origin without modifications", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "X", routePrefix: "tester" },
       { ajsInjection: false, proxyOrigin: true }
     );
@@ -41,7 +41,7 @@ describe("integration tests: Proxy Origin", () => {
   });
 
   it("Does not proxy origin if the flag is off", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "X", routePrefix: "tester" },
       { proxyOrigin: false }
     );
@@ -64,7 +64,7 @@ describe("integration tests: AJS snippet injection", () => {
   });
 
   it("AJS Snippet Injection with writekey redaction", async () => {
-    let segment = new Segment({ writeKey: "X", routePrefix: "tester" });
+    const segment = new Segment({ writeKey: "X", routePrefix: "tester" });
 
     const request = new Request("https://sushi-shop.com/", {
       headers: { host: "sushi-shop.com" },
@@ -83,7 +83,7 @@ describe("integration tests: AJS snippet injection", () => {
   });
 
   it("AJS Snippet Injection without writekey redaction", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "X", routePrefix: "tester" },
       { redactWritekey: false }
     );
@@ -105,7 +105,7 @@ describe("integration tests: AJS snippet injection", () => {
   });
 
   it("AJS Snippet Injection respects the feature flag", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "X", routePrefix: "tester" },
       { ajsInjection: false }
     );
@@ -123,7 +123,7 @@ describe("integration tests: AJS snippet injection", () => {
   });
 
   it("Avoid AJS snippet injection into non-200 responses from origin", async () => {
-    let segment = new Segment({ writeKey: "X", routePrefix: "tester" });
+    const segment = new Segment({ writeKey: "X", routePrefix: "tester" });
 
     const request = new Request(
       "https://sushi-shop.com/menu/confit-du-canard",
@@ -147,7 +147,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("Makes AJS available on the first party domain", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
@@ -181,15 +181,15 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("AJS: Configures the AJS CDN correctly in AJS code", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: { host: "sushi-shop.com" },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
@@ -199,18 +199,18 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("AJS: Configures AJS with Id cookies that exist in the request", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: {
         host: "sushi-shop.com",
         cookie: "ajs_user_id=123; ajs_anonymous_id=xyz",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
@@ -220,17 +220,17 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("AJS: generates anonymousId automatically if it is not already part of request cookies", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: {
         host: "sushi-shop.com",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
@@ -240,18 +240,18 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("AJS: It should not configure user id if server-side cookie and client-side traits feature is disabled", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       { serverSideCookies: false, clientSideTraits: false }
     );
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: {
         host: "sushi-shop.com",
         cookie: "ajs_user_id=123; ajs_anonymous_id=xyz",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
@@ -262,18 +262,18 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("AJS: It should set server-side cookies when returning AJS", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: {
         host: "sushi-shop.com",
         cookie: "ajs_user_id=123; ajs_anonymous_id=xyz",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
@@ -286,7 +286,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("AJS: Invalid responses are returned verbatim", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "INVALID_WRITEKEY",
       routePrefix: "tester",
     });
@@ -314,7 +314,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("Settings: Configures API host to point to the first-party domain", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
@@ -337,7 +337,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("Settings: redacts the writekey in settings if the flag is set", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       {
         redactWritekey: true,
@@ -362,7 +362,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("Settings: does not redact the writekey in settings if the flag is set to false", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       {
         redactWritekey: false,
@@ -387,7 +387,7 @@ describe("integration tests: Proxy AJS and Assets", () => {
   });
 
   it("Settings: should allow access from any origin", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
@@ -415,12 +415,12 @@ describe("integration tests: Proxy TAPI", () => {
   });
 
   it("Makes AJS available on the first party domain", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       { writeKey: "THIS_IS_A_WRITE_KEY", routePrefix: "tester" },
       { redactWritekey: false, edgeContext: false }
     );
 
-    let request = new Request("https://sushi-shop.com/tester/evs/t", {
+    const request = new Request("https://sushi-shop.com/tester/evs/t", {
       method: "POST",
       body: JSON.stringify({
         type: "track",
@@ -430,7 +430,7 @@ describe("integration tests: Proxy TAPI", () => {
       }),
     });
 
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
@@ -438,7 +438,7 @@ describe("integration tests: Proxy TAPI", () => {
   });
 
   it("Supports custom TAPI endpoint", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       {
         writeKey: "THIS_IS_A_WRITE_KEY",
         routePrefix: "tester",
@@ -447,7 +447,7 @@ describe("integration tests: Proxy TAPI", () => {
       { redactWritekey: false, edgeContext: false }
     );
 
-    let request = new Request("https://sushi-shop.com/tester/evs/t", {
+    const request = new Request("https://sushi-shop.com/tester/evs/t", {
       method: "POST",
       body: JSON.stringify({
         type: "track",
@@ -457,7 +457,7 @@ describe("integration tests: Proxy TAPI", () => {
       }),
     });
 
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
@@ -474,7 +474,7 @@ describe("integration tests: Personas webhook", () => {
   });
 
   it("401s if username/password missing or not matching", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -507,14 +507,14 @@ describe("integration tests: Personas webhook", () => {
   });
 
   it("401s if username password is not configured, but also no auth is passed in", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
     });
 
     // no auth
-    let request = new Request("https://sushi-shop.com/tester/personas", {
+    const request = new Request("https://sushi-shop.com/tester/personas", {
       method: "POST",
       body: JSON.stringify(samplePersonasIncomingRequest),
     });
@@ -524,7 +524,7 @@ describe("integration tests: Personas webhook", () => {
   });
 
   it("Stores user profile if it does not exist in the storage", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -551,7 +551,7 @@ describe("integration tests: Personas webhook", () => {
       '{"mac_users":true}'
     );
 
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -580,7 +580,7 @@ describe("integration tests: Personas webhook", () => {
       '{"cool_people":true}'
     );
 
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -605,7 +605,7 @@ describe("integration tests: Personas webhook", () => {
   });
 
   it("Returns 403 if storage is not setup", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       engageWebhookPassword: "password",
@@ -622,7 +622,7 @@ describe("integration tests: Personas webhook", () => {
   });
 
   it("Returns 403 if incoming webhook sends a track call", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -641,7 +641,7 @@ describe("integration tests: Personas webhook", () => {
 
   it("Synced data can be used later", async () => {
     mockSegmentCDN();
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -671,7 +671,7 @@ describe("integration tests: Personas webhook", () => {
   });
 
   it("Returns 501 if feature is not setup", async () => {
-    let segment = new Segment(
+    const segment = new Segment(
       {
         writeKey: "THIS_IS_A_WRITE_KEY",
         routePrefix: "tester",
@@ -691,7 +691,7 @@ describe("integration tests: Personas webhook", () => {
   });
 
   it("For non-audience payloads, it gracefully returns without acting on the webhook", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -727,7 +727,7 @@ describe("integration tests: Client-side traits", () => {
   });
 
   it("Client-side traits: queries profiles API if the profile does not exist on Edge", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -738,13 +738,13 @@ describe("integration tests: Client-side traits", () => {
       cool: t.cool_people,
     }));
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: {
         host: "sushi-shop.com",
         cookie: "ajs_user_id=sloth; ajs_anonymous_id=xyz",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     expect(resp?.status).toBe(200);
     const data = await resp?.text();
@@ -752,7 +752,7 @@ describe("integration tests: Client-side traits", () => {
   });
 
   it("Client-side traits: Stores full profile on the edge after querying profile API", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -763,13 +763,13 @@ describe("integration tests: Client-side traits", () => {
       cool: t.cool_people,
     }));
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: {
         host: "sushi-shop.com",
         cookie: "ajs_user_id=sloth; ajs_anonymous_id=xyz",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     expect(resp?.status).toBe(200);
     const profile = await Profiles.get("user_id:sloth");
@@ -779,7 +779,7 @@ describe("integration tests: Client-side traits", () => {
   });
 
   it("Client-side traits: Can use the profile info from the Edge", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -820,7 +820,7 @@ describe("integration tests: Client-side traits", () => {
   });
 
   it("Client-side traits: doesn't add any traits if no client-side trait function provided", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -830,13 +830,13 @@ describe("integration tests: Client-side traits", () => {
 
     await Profiles.put("user_id:sloth", '{"cool_people":false}');
 
-    let request = new Request("https://sushi-shop.com/tester/ajs/13232", {
+    const request = new Request("https://sushi-shop.com/tester/ajs/13232", {
       headers: {
         host: "sushi-shop.com",
         cookie: "ajs_user_id=sloth; ajs_anonymous_id=xyz",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     expect(resp?.status).toBe(200);
     const data = await resp?.text();
@@ -856,7 +856,7 @@ describe("integration tests: Variations", () => {
   });
 
   it("Variations: queries profiles API and delivers the personalized content", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -894,7 +894,7 @@ describe("integration tests: Variations", () => {
   });
 
   it("Variations: use the Edge DB to deliver personalized content", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -936,7 +936,7 @@ describe("integration tests: Variations", () => {
   });
 
   it("Variations: delivers default content if Profile doesn't exist and variation function returns undefined", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
       profilesStorage: Profiles,
@@ -951,13 +951,13 @@ describe("integration tests: Variations", () => {
     });
 
     // sloth receives the super cool sushi menu
-    let request = new Request("https://sushi-shop.com/menu", {
+    const request = new Request("https://sushi-shop.com/menu", {
       headers: {
         host: "sushi-shop.com",
         cookie: "ajs_user_id=tim;",
       },
     });
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     expect(resp?.status).toBe(200);
     const data = await resp?.text();
@@ -971,14 +971,14 @@ describe("integration tests: Reset endpoint", () => {
   });
 
   it("Resets the server-side cookies", async () => {
-    let segment = new Segment({
+    const segment = new Segment({
       writeKey: "THIS_IS_A_WRITE_KEY",
       routePrefix: "tester",
     });
 
-    let request = new Request("https://sushi-shop.com/tester/reset");
+    const request = new Request("https://sushi-shop.com/tester/reset");
 
-    let resp = await segment.handleEvent(request);
+    const resp = await segment.handleEvent(request);
 
     // AJS is available on the first party domain
     expect(resp?.status).toBe(200);
