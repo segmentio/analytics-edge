@@ -60,7 +60,7 @@ export const appendIdCallsToAJS: HandlerFunction = async (
 
   const resetHandler = `analytics.on('reset', function() { fetch('https://${ctx.host}/${ctx.settings.routePrefix}/reset', {credentials:"include"}) });`;
 
-  let content = await response.text();
+  const content = await response.text();
 
   const body = `
     ${anonymousCall}${idCall}
@@ -126,13 +126,10 @@ export const configureApiHost: HandlerFunction = async (
   }
 
   const host = ctx.host;
-  const content = await response.text();
-  const body = content.replace(
-    /api.segment.io\/v1/g,
-    `${host}/${ctx.settings.routePrefix}/evs`
-  );
-
-  return [request, new Response(body, response), ctx];
+  // rather than send to api.segment.io, configure analytics to proxy event calls through worker.
+  const settings = await response.json() as any
+  settings.integrations["Segment.io"].apiHost = `${host}/${ctx.settings.routePrefix}/evs`
+  return [request, new Response(JSON.stringify(settings), response), ctx];
 };
 
 export const handleCORS: HandlerFunction = async (request, response, ctx) => {
