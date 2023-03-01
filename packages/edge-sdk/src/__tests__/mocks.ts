@@ -47,7 +47,7 @@ export const mockSegmentCDN = () => {
       `{
       "integrations": {
         "Segment.io": {
-          "apiKey": "THIS_IS_A_WRITE_KEY"",
+          "apiKey": "THIS_IS_A_WRITE_KEY",
           "apiHost": "api.segment.io/v1"
         }
       },
