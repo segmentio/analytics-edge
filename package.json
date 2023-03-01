@@ -17,10 +17,14 @@
     "full-example:deploy": "yarn build && yarn workspace @segment/cloudflare_example deploy:prod",
     "proxy-example:deploy": "yarn build && yarn workspace @segment/segment_proxy deploy:prod"
   },
+  "engines": {
+    "npm": "please-use-yarn"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.22.0",
     "eslint-config-edge-sdk": "*",
     "prettier": "^2.5.1",
     "turbo": "latest"
-  }
+  },
+  "packageManager": "yarn@3.4.1"
 }
