@@ -5,7 +5,7 @@ module.exports = {
       files: ["*.{ts,tsx}"],
       parser: "@typescript-eslint/parser",
       parserOptions: {
-        project: ["./tsconfig.json", "./packages/*/tsconfig.json"],
+        project: ["./packages/*/tsconfig.json"],
       },
       extends: [
         // Disable rules from eslint:recommended which are already handled by TypeScript. Enables eslint (@not typescript-eslint) rules that make sense due to TS's typechecking / transpilation.
