@@ -128,7 +128,10 @@ export const configureApiHost: HandlerFunction = async (
   const host = ctx.host;
   // rather than send to api.segment.io, configure analytics to proxy event calls through worker.
   const settings = await response.json() as any
-  settings.integrations["Segment.io"].apiHost = `${host}/${ctx.settings.routePrefix}/evs`
+  const apiHost = `${host}/${ctx.settings.routePrefix}/evs`
+  // we parse settings because of bug where apiHost is missing.
+  settings.integrations["Segment.io"].apiHost = apiHost
+  settings.metrics.host = apiHost
   return [request, new Response(JSON.stringify(settings), response), ctx];
 };
 

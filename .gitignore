@@ -13,3 +13,10 @@ public/dist
 .turbo
 wrangler.toml
 **/coverage/**
+
+
+# ignore all .vscode folders unless they're in the root directory
+.vscode
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json

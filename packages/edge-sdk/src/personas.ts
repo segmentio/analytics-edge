@@ -31,8 +31,6 @@ export const handlePersonasWebhook: HandlerFunction = async (
   const encoded = authorization.split(" ")[1];
   const decoded = atob(encoded);
   const [username, password] = decoded.split(":");
-  console.log("username", username, context.settings.engageWebhookUsername);
-  console.log("password", password, context.settings.engageWebhookPassword);
   if (
     !username ||
     !password ||
