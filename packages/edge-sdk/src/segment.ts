@@ -32,6 +32,7 @@ import {
   handleCORS,
   handleSettings,
   redactWritekey,
+  removeSourcemapReference,
 } from "./assetsProxy";
 import { handleTAPI, includeEdgeTraitsInContext, injectWritekey } from "./tapi";
 import {
@@ -175,6 +176,7 @@ export class Segment {
         features.serverSideCookies || features.clientSideTraits
       )
       .handler(appendAJSCustomConfiguration)
+      .handler(removeSourcemapReference)
       .handler(redactWritekey, features.redactWritekey);
 
     // settings handlers

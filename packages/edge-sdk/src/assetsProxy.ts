@@ -111,7 +111,22 @@ export const redactWritekey: HandlerFunction = async (
   }
 
   const content = await response.text();
-  const body = content.replace(ctx.settings.writeKey, "REDACTED");
+  const body = content.replace(ctx.settings.writeKey, "REDACTED")
+
+  return [request, new Response(body, response), ctx];
+};
+
+// get rid of 'missing sourcemaps' error
+export const removeSourcemapReference: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  if (response.status !== 200) {
+    return [request, response, ctx];
+  }
+  const content = await response.text();
+  const body = content.replace(new RegExp("\/\/#.*"), "")
 
   return [request, new Response(body, response), ctx];
 };
