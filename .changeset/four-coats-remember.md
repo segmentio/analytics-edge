@@ -1,5 +1,5 @@
 ---
-"@segment/edge-sdk": major
+"@segment/edge-sdk": patch
 ---
 
 Fix missing sourcemap error
