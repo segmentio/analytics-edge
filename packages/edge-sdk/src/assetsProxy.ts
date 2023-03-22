@@ -116,6 +116,21 @@ export const redactWritekey: HandlerFunction = async (
   return [request, new Response(body, response), ctx];
 };
 
+// get rid of 'missing sourcemaps' error
+export const removeSourcemapReference: HandlerFunction = async (
+  request,
+  response,
+  ctx
+) => {
+  if (response.status !== 200) {
+    return [request, response, ctx];
+  }
+  const content = await response.text();
+  const body = content.replace(new RegExp("//#.*"), "");
+
+  return [request, new Response(body, response), ctx];
+};
+
 export const configureApiHost: HandlerFunction = async (
   request,
   response,
@@ -127,11 +142,11 @@ export const configureApiHost: HandlerFunction = async (
 
   const host = ctx.host;
   // rather than send to api.segment.io, configure analytics to proxy event calls through worker.
-  const settings = await response.json() as any
-  const apiHost = `${host}/${ctx.settings.routePrefix}/evs`
+  const settings = (await response.json()) as any;
+  const apiHost = `${host}/${ctx.settings.routePrefix}/evs`;
   // we parse settings because of bug where apiHost is missing.
-  settings.integrations["Segment.io"].apiHost = apiHost
-  settings.metrics.host = apiHost
+  settings.integrations["Segment.io"].apiHost = apiHost;
+  settings.metrics.host = apiHost;
   return [request, new Response(JSON.stringify(settings), response), ctx];
 };
 
