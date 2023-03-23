@@ -47,6 +47,7 @@ const sdkDefaultSettings = {
   baseSegmentCDN: "https://cdn.segment.com",
   logLevels: ["error", "warn", "info"] as LogLevel[],
   trackingApiEndpoint: "https://api.segment.io/v1",
+  snippetInitialPageView: true,
 };
 
 const sdkDefaultFeatures: EdgeSDKFeatures = {
@@ -79,6 +80,7 @@ export class Segment {
   private features: EdgeSDKFeatures;
   private profilesStorage?: Storage;
   private trackingApiEndpoint: SegmentTrackingAPIEndpoint;
+  private snippetInitialPageView: boolean;
 
   get settings(): EdgeSDKSettings {
     return {
@@ -91,6 +93,7 @@ export class Segment {
       baseSegmentCDN: this.baseSegmentCDN,
       profilesStorage: this.profilesStorage,
       trackingApiEndpoint: this.trackingApiEndpoint,
+      snippetInitialPageView: this.snippetInitialPageView,
     };
   }
 
@@ -122,6 +125,7 @@ export class Segment {
       logLevels,
       profilesStorage,
       trackingApiEndpoint,
+      snippetInitialPageView,
     } = {
       ...sdkDefaultSettings,
       ...settings,
@@ -135,6 +139,7 @@ export class Segment {
     this.baseSegmentCDN = baseSegmentCDN;
     this.profilesStorage = profilesStorage;
     this.trackingApiEndpoint = trackingApiEndpoint;
+    this.snippetInitialPageView = snippetInitialPageView;
     this._variations = [];
     this._traitsFunc = (traits) => undefined;
     this.logger = new Logger(logLevels);

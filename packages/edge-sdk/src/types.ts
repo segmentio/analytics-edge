@@ -1,5 +1,6 @@
 import { Logger, LogLevel } from "./logger";
 import { Segment } from "./segment";
+import { Options } from "@segment/snippet";
 
 export interface Storage {
   get(key: string): Promise<string | null>;
@@ -99,6 +100,13 @@ export interface EdgeSDKSettings {
    *
    * */
   engageWebhookPassword?: string;
+  /**
+   * Determines whether the injected snippet contains an initial page call or not.
+   * @default true
+   * @example false
+   *
+   * */
+  snippetInitialPageView?: boolean;
 }
 
 /**

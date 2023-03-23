@@ -78,6 +78,7 @@ describe("integration tests: AJS snippet injection", () => {
     expect(data).toContain('analytics._writeKey="REDACTED";'); // write key is redacted
     expect(data).toContain('t.src="https://sushi-shop.com/tester/ajs/'); // AJS URL excluding the randomized bit
     expect(data).toContain('analytics._cdn = "https://sushi-shop.com/tester"'); // CDN is configured properly
+    expect(data).toContain("analytics.page()"); // There is a default page call
 
     expect(data).toContain("Hello from Sushi Shop 🍣"); // page content is rendered
   });
@@ -100,6 +101,7 @@ describe("integration tests: AJS snippet injection", () => {
     expect(data).toContain('analytics._writeKey="X";'); // write key is redacted
     expect(data).toContain('t.src="https://sushi-shop.com/tester/ajs/'); // AJS URL excluding the randomized bit
     expect(data).toContain('analytics._cdn = "https://sushi-shop.com/tester"'); // CDN is configured properly
+    expect(data).toContain("analytics.page()"); // There is a default page call
 
     expect(data).toContain("Hello from Sushi Shop 🍣"); // page content is rendered
   });
@@ -137,6 +139,30 @@ describe("integration tests: AJS snippet injection", () => {
     expect(resp?.status).toBe(404);
     const data = await resp?.text();
     expect(data).toContain("Not found");
+  });
+
+  it("AJS Snippet Injection with disabled page call", async () => {
+    const segment = new Segment({
+      writeKey: "X",
+      routePrefix: "tester",
+      snippetInitialPageView: false,
+    });
+
+    const request = new Request("https://sushi-shop.com/", {
+      headers: { host: "sushi-shop.com" },
+    });
+
+    const resp = await segment.handleEvent(request);
+
+    expect(resp?.status).toBe(200);
+    const data = await resp?.text();
+    expect(data).toContain('analytics.load("REDACTED");'); // write key is redacted
+    expect(data).toContain('analytics._writeKey="REDACTED";'); // write key is redacted
+    expect(data).toContain('t.src="https://sushi-shop.com/tester/ajs/'); // AJS URL excluding the randomized bit
+    expect(data).toContain('analytics._cdn = "https://sushi-shop.com/tester"'); // CDN is configured properly
+    expect(data).not.toContain("analytics.page()"); // There is no page call
+
+    expect(data).toContain("Hello from Sushi Shop 🍣"); // page content is rendered
   });
 });
 
