@@ -103,8 +103,10 @@ export interface EdgeSDKSettings {
   /**
    * The options to pass to analytics.page call in the injected snippet.
    * if page is false, then the page() call will be omitted.
-   * @default "https://api.segment.io/v1"
-   * @example "https://events.eu1.segmentapis.com/v1"
+   * @default {}
+   * @example { name: "Home", category: "Page Views", properties: { path: "/" } }
+   * @example false
+   *
    * */
   snippetPageSettings?: Options["page"];
 }
