@@ -101,14 +101,12 @@ export interface EdgeSDKSettings {
    * */
   engageWebhookPassword?: string;
   /**
-   * The options to pass to analytics.page call in the injected snippet.
-   * if page is false, then the page() call will be omitted.
-   * @default {}
-   * @example { name: "Home", category: "Page Views", properties: { path: "/" } }
+   * Determines whether the injected snippet contains an initial page call or not.
+   * @default true
    * @example false
    *
    * */
-  snippetPageSettings?: Options["page"];
+  snippetInitialPageView?: boolean;
 }
 
 /**

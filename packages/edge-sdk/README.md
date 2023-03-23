@@ -242,13 +242,13 @@ The SDK will automatically capture the information available on the edge and inc
 The SDK will automatically adds AJS snippet to the `<HEAD>` of each page.
 
 👉 This feature should only be used if the SDK is being used as a full proxy of the origin.
-👉 You can use `snippetPageSettings` when initializing the Edge SDK to control the initial page call for the injected snippet. For example:
+👉 You can use `snippetInitialPageView` when initializing the Edge SDK to control the initial page call for the injected snippet. For example:
 
 ```javascript
 const segment = new Segment({
   writeKey: "...",
   routePrefix: "myPrefix",
-  snippetPageSettings: false, // skips the initial page call in the snippet
+  snippetInitialPageView: false, // skips the initial page call in the snippet
 });
 ```
 

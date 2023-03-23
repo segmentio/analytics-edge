@@ -7,17 +7,17 @@ class ElementHandler {
   host: string;
   writeKey: string;
   routePrefix: string;
-  snippetPageSettings: EdgeSDKSettings["snippetPageSettings"];
+  snippetInitialPageView: boolean;
   constructor(
     host: string,
     writeKey: string,
     routePrefix: string,
-    snippetPageSettings: EdgeSDKSettings["snippetPageSettings"] = {}
+    snippetInitialPageView: boolean = true
   ) {
     this.host = host;
     this.writeKey = writeKey;
     this.routePrefix = routePrefix;
-    this.snippetPageSettings = snippetPageSettings;
+    this.snippetInitialPageView = snippetInitialPageView;
   }
 
   element(element: Element) {
@@ -26,7 +26,7 @@ class ElementHandler {
       apiKey: this.writeKey,
       ajsPath: `/ajs/${uuidv4()}`,
       useHostForBundles: true,
-      page: this.snippetPageSettings,
+      page: this.snippetInitialPageView ? {} : false,
     });
 
     element.append(`<script>${snip}</script>`, { html: true });
@@ -39,7 +39,7 @@ export const enrichWithAJS: HandlerFunction = async (
   context
 ) => {
   const {
-    settings: { writeKey, routePrefix, snippetPageSettings },
+    settings: { writeKey, routePrefix, snippetInitialPageView },
   } = context;
   const host = context.host;
 
@@ -48,7 +48,7 @@ export const enrichWithAJS: HandlerFunction = async (
     new HTMLRewriter()
       .on(
         "head",
-        new ElementHandler(host, writeKey, routePrefix, snippetPageSettings)
+        new ElementHandler(host, writeKey, routePrefix, snippetInitialPageView)
       )
       .transform(response),
     context,
@@ -61,7 +61,7 @@ export const enrichWithAJSNoWriteKey: HandlerFunction = async (
   context
 ) => {
   const {
-    settings: { routePrefix, snippetPageSettings },
+    settings: { routePrefix, snippetInitialPageView },
   } = context;
   const host = context.host;
 
@@ -70,7 +70,12 @@ export const enrichWithAJSNoWriteKey: HandlerFunction = async (
     new HTMLRewriter()
       .on(
         "head",
-        new ElementHandler(host, "REDACTED", routePrefix, snippetPageSettings)
+        new ElementHandler(
+          host,
+          "REDACTED",
+          routePrefix,
+          snippetInitialPageView
+        )
       )
       .transform(response),
     context,
