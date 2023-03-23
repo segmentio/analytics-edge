@@ -79,6 +79,7 @@ export class Segment {
   private features: EdgeSDKFeatures;
   private profilesStorage?: Storage;
   private trackingApiEndpoint: SegmentTrackingAPIEndpoint;
+  private snippetPageSettings: EdgeSDKSettings["snippetPageSettings"];
 
   get settings(): EdgeSDKSettings {
     return {
@@ -91,6 +92,7 @@ export class Segment {
       baseSegmentCDN: this.baseSegmentCDN,
       profilesStorage: this.profilesStorage,
       trackingApiEndpoint: this.trackingApiEndpoint,
+      snippetPageSettings: this.snippetPageSettings,
     };
   }
 
@@ -122,6 +124,7 @@ export class Segment {
       logLevels,
       profilesStorage,
       trackingApiEndpoint,
+      snippetPageSettings,
     } = {
       ...sdkDefaultSettings,
       ...settings,
@@ -135,6 +138,7 @@ export class Segment {
     this.baseSegmentCDN = baseSegmentCDN;
     this.profilesStorage = profilesStorage;
     this.trackingApiEndpoint = trackingApiEndpoint;
+    this.snippetPageSettings = snippetPageSettings;
     this._variations = [];
     this._traitsFunc = (traits) => undefined;
     this.logger = new Logger(logLevels);

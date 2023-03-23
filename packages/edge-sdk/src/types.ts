@@ -1,5 +1,6 @@
 import { Logger, LogLevel } from "./logger";
 import { Segment } from "./segment";
+import { Options } from "@segment/snippet";
 
 export interface Storage {
   get(key: string): Promise<string | null>;
@@ -99,6 +100,13 @@ export interface EdgeSDKSettings {
    *
    * */
   engageWebhookPassword?: string;
+  /**
+   * The options to pass to analytics.page call in the injected snippet.
+   * if page is false, then the page() call will be omitted.
+   * @default "https://api.segment.io/v1"
+   * @example "https://events.eu1.segmentapis.com/v1"
+   * */
+  snippetPageSettings?: Options["page"];
 }
 
 /**
