@@ -1,5 +1,11 @@
 # @segment/edge-sdk
 
+## 0.1.0
+
+### Minor Changes
+
+- 1694171: support a new `snippetInitialPageView` option to control the initial page call when injecting snippet
+
 ## 0.0.8
 
 ### Patch Changes
