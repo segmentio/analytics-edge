@@ -69,8 +69,7 @@ export const injectMetadata: HandlerFunction = async (
     ...body.context,
     library: {
       ...body.context?.library,
-      name: "@segment/edge-sdk",
-      version,
+      version: `edge:${body.context?.version}`,
     },
   };
   return [

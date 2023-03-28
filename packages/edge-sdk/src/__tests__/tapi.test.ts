@@ -88,7 +88,7 @@ describe("origin handler", () => {
       method: "POST",
       body: JSON.stringify({ type: "page", writeKey: "REDACTED" }),
     });
-    const [req, resp, context] = await injectWritekey(
+    const [req] = await injectWritekey(
       request,
       new Response("Unhandled Rejection", { status: 501 }),
       mockContext
@@ -109,7 +109,6 @@ describe("origin handler", () => {
     const [req] = await injectMetadata(request, new Response(), mockContext);
     const body = (await req.json()) as any;
     expect(body._metadata.jsRuntime).toBe("cloudflare-worker");
-    expect(body.context.library.name).toBe("@segment/edge-sdk");
-    expect(body.context.library.version).toMatch(/d*/);
+    expect(body.context.library.version).toMatch(/edge:.*/);
   });
 });
