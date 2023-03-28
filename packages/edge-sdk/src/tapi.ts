@@ -1,5 +1,5 @@
 import { HandlerFunction } from "./types";
-
+import { version } from "./generated/version";
 export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
   response,
@@ -63,9 +63,15 @@ export const injectMetadata: HandlerFunction = async (
   body._metadata = {
     ...body._metadata,
     jsRuntime: "cloudflare-worker",
-    edgeSDK: true,
   };
-
+  body.context = {
+    ...body.context,
+    library: {
+      ...body.context?.library,
+      name: "analytics-edge",
+      version,
+    },
+  };
   return [
     new Request(request, { body: JSON.stringify(body) }),
     response,

@@ -112,6 +112,7 @@ describe("origin handler", () => {
     const [req] = await injectMetadata(request, new Response(), mockContext);
     const body = (await req.json()) as any;
     expect(body._metadata.jsRuntime).toBe("cloudflare-worker");
-    expect(body._metadata.edgeSDK).toBe(true);
+    expect(body.context.library.name).toBe("analytics-edge");
+    expect(body.context.library.version).toMatch(/d*/);
   });
 });
