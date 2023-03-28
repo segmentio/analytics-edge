@@ -1,9 +1,7 @@
-import { handleOrigin, handleOriginWithEarlyExit } from "../origin";
-import { Router } from "../router";
-import { Segment } from "../segment";
 import {
   handleTAPI,
   includeEdgeTraitsInContext,
+  injectMetadata,
   injectWritekey,
 } from "../tapi";
 import { mockContext } from "./mocks";
@@ -90,7 +88,7 @@ describe("origin handler", () => {
       method: "POST",
       body: JSON.stringify({ type: "page", writeKey: "REDACTED" }),
     });
-    const [req, resp, context] = await injectWritekey(
+    const [req] = await injectWritekey(
       request,
       new Response("Unhandled Rejection", { status: 501 }),
       mockContext
@@ -101,5 +99,16 @@ describe("origin handler", () => {
 
     const body = await req.json();
     expect(body).toEqual({ type: "page" });
+  });
+
+  it("Injects metadata into body", async () => {
+    const request = new Request("https://customer.com/seg/v1/p", {
+      method: "POST",
+      body: JSON.stringify({ type: "page", writeKey: "REDACTED" }),
+    });
+    const [req] = await injectMetadata(request, new Response(), mockContext);
+    const body = (await req.json()) as any;
+    expect(body._metadata.jsRuntime).toBe("cloudflare-worker");
+    expect(body.context.library.version).toMatch(/edge:.*/);
   });
 });
