@@ -1,5 +1,6 @@
 import { HandlerFunction } from "./types";
 import { version } from "./generated/version";
+
 export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
   response,
