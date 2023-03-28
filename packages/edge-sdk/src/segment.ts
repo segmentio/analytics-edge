@@ -34,7 +34,12 @@ import {
   redactWritekey,
   removeSourcemapReference,
 } from "./assetsProxy";
-import { handleTAPI, includeEdgeTraitsInContext, injectWritekey } from "./tapi";
+import {
+  handleTAPI,
+  includeEdgeTraitsInContext,
+  injectMetadata,
+  injectWritekey,
+} from "./tapi";
 import {
   handleOrigin,
   handleOriginWithEarlyExit,
@@ -196,6 +201,7 @@ export class Segment {
     router
       .register("tapi")
       .handler(injectWritekey, features.redactWritekey)
+      .handler(injectMetadata)
       .handler(extractIdFromCookie, features.serverSideCookies)
       .handler(extractIdFromPayload, features.serverSideCookies)
       .handler(includeEdgeTraitsInContext, features.edgeContext)

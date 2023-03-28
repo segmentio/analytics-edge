@@ -1,4 +1,5 @@
 import { HandlerFunction } from "./types";
+import { mockContext } from "./__tests__/mocks";
 
 export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
@@ -8,7 +9,7 @@ export const includeEdgeTraitsInContext: HandlerFunction = async (
   const url = new URL(request.url);
   const parts = url.pathname.split("/");
   const method = parts.pop();
-  let body: { [key: string]: any } = await request.json();
+  const body: { [key: string]: any } = await request.json();
   if (method && ["i", "t", "p"].includes(method) && request.cf) {
     body.context = {
       ...body.context,
@@ -54,13 +55,32 @@ export const handleTAPI: HandlerFunction = async (
   return [request, resp, context];
 };
 
+export const injectMetadata: HandlerFunction = async (
+  request,
+  response,
+  context
+) => {
+  const body = (await request.json()) as any;
+  if (!body._metadata) {
+    body._metadata = {};
+  }
+  body._metadata.jsRuntime = "cloudflare-worker";
+  body._metadata.edgeSDK = true;
+
+  return [
+    new Request(request, { body: JSON.stringify(body) }),
+    response,
+    context,
+  ];
+};
+
 export const injectWritekey: HandlerFunction = async (
   request,
   response,
   context
 ) => {
   // grab body and method from request
-  let body: { [key: string]: any } = await request.json();
+  const body: { [key: string]: any } = await request.json();
 
   // discard the redacted writekey and include the real one in the headers
   const headers = new Headers(request.headers);
