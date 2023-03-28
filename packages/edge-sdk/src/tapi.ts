@@ -1,5 +1,4 @@
 import { HandlerFunction } from "./types";
-import { mockContext } from "./__tests__/mocks";
 
 export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
