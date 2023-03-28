@@ -60,11 +60,11 @@ export const injectMetadata: HandlerFunction = async (
   context
 ) => {
   const body = (await request.json()) as any;
-  if (!body._metadata) {
-    body._metadata = {};
-  }
-  body._metadata.jsRuntime = "cloudflare-worker";
-  body._metadata.edgeSDK = true;
+  body._metadata = {
+    ...body._metadata,
+    jsRuntime: "cloudflare-worker",
+    edgeSDK: true,
+  };
 
   return [
     new Request(request, { body: JSON.stringify(body) }),
