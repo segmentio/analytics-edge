@@ -1,5 +1,11 @@
 # @segment/edge-sdk
 
+## 0.1.1
+
+### Patch Changes
+
+- 58820db: Add metadata for metrics.
+
 ## 0.1.0
 
 ### Minor Changes
