@@ -1,5 +1,11 @@
 # @segment/edge-sdk
 
+## 0.1.2
+
+### Patch Changes
+
+- 9fc60f7: Fix metadata logic
+
 ## 0.1.1
 
 ### Patch Changes
