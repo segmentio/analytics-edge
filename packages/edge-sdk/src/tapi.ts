@@ -69,7 +69,7 @@ export const injectMetadata: HandlerFunction = async (
     ...body.context,
     library: {
       ...body.context?.library,
-      version: `edge:${body.context?.version}`,
+      version: `edge-${version}:${body.context?.version}`,
     },
   };
   return [
