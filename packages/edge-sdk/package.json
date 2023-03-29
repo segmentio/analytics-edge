@@ -17,7 +17,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --watch --dts",
     "lint": "TIMING=1 eslint src/**/*.ts* --fix",
     "clean": "rm -rf .turbo && rm -rf dist",
-    "version": "sh scripts/version.sh",
+    "postversion": "sh scripts/version.sh",
     "test": "jest"
   },
   "jest": {

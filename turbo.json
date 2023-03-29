@@ -18,7 +18,7 @@
     "clean": {
       "cache": false
     },
-    "version": {
+    "postversion": {
       "cache": false
     }
   }

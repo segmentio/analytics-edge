@@ -12,7 +12,7 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "changeset": "changeset",
-    "version-packages": "yarn turbo version && changeset version && sh scripts/update-lockfile.sh",
+    "version-packages": "changeset version && yarn turbo postversion && sh scripts/update-lockfile.sh",
     "release": "turbo run build --filter='./packages/*' && changeset publish",
     "full-example:deploy": "yarn build && yarn workspace @segment/cloudflare_example deploy:prod",
     "proxy-example:deploy": "yarn build && yarn workspace @segment/segment_proxy deploy:prod"
