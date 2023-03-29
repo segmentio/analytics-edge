@@ -6,6 +6,20 @@ import {
 } from "../tapi";
 import { mockContext } from "./mocks";
 
+const reqBodyFixture = {
+  timestamp: "2022-10-06T06:08:42.057Z",
+  integrations: { "Segment.io": true },
+  userId: "🤿",
+  anonymousId: "👻",
+  type: "identify",
+  traits: { isCool: "no" },
+  context: {
+    library: { name: "analytics.js", version: "next-1.43.0" },
+  },
+  messageId: "ajs-next-f142195b60efd67506bd5c4f7a4ffa99",
+  writeKey: "Shall not be revealed",
+} as const;
+
 describe("origin handler", () => {
   beforeEach(() => {
     //@ts-ignore - getMiniflareFetchMock is global defined by miniflare
@@ -38,19 +52,7 @@ describe("origin handler", () => {
   it("Enrich identify calls with Edge traits", async () => {
     const request = new Request("https://customer.com/seg/v1/i", {
       method: "POST",
-      body: JSON.stringify({
-        timestamp: "2022-10-06T06:08:42.057Z",
-        integrations: { "Segment.io": true },
-        userId: "🤿",
-        anonymousId: "👻",
-        type: "identify",
-        traits: { isCool: "no" },
-        context: {
-          library: { name: "analytics.js", version: "next-1.43.0" },
-        },
-        messageId: "ajs-next-f142195b60efd67506bd5c4f7a4ffa99",
-        writeKey: "Shall not be revealed",
-      }),
+      body: JSON.stringify(reqBodyFixture),
       cf: {
         city: "Vancouver",
         region: "Beautiful British Columbia",
@@ -104,11 +106,13 @@ describe("origin handler", () => {
   it("Injects metadata into body", async () => {
     const request = new Request("https://customer.com/seg/v1/p", {
       method: "POST",
-      body: JSON.stringify({ type: "page", writeKey: "REDACTED" }),
+      body: JSON.stringify(reqBodyFixture),
     });
     const [req] = await injectMetadata(request, new Response(), mockContext);
     const body = (await req.json()) as any;
     expect(body._metadata.jsRuntime).toBe("cloudflare-worker");
-    expect(body.context.library.version).toMatch(/edge-\d.*:.*/);
+    const [edgeVersion, ajsVersion] = body.context.library.version.split(":");
+    expect(edgeVersion).toMatch(/edge-\d*/);
+    expect(ajsVersion).toMatch(reqBodyFixture.context.library.version);
   });
 });
