@@ -2,4 +2,4 @@
 "@segment/edge-sdk": patch
 ---
 
-Add metadata for metrics
+Add metadata for metrics.
