@@ -16,6 +16,7 @@ import {
   resetCookies,
 } from "./cookies";
 import { enrichWithAJS, enrichWithAJSNoWriteKey } from "./parser";
+import { personalizeWithAI } from "./openai";
 import {
   handleVariations,
   handleClientSideTraits,
@@ -81,6 +82,7 @@ export class Segment {
   private profilesStorage?: Storage;
   private trackingApiEndpoint: SegmentTrackingAPIEndpoint;
   private snippetInitialPageView: boolean;
+  private openai: any;
 
   get settings(): EdgeSDKSettings {
     return {
@@ -94,6 +96,7 @@ export class Segment {
       profilesStorage: this.profilesStorage,
       trackingApiEndpoint: this.trackingApiEndpoint,
       snippetInitialPageView: this.snippetInitialPageView,
+      openai: this.openai,
     };
   }
 
@@ -126,6 +129,7 @@ export class Segment {
       profilesStorage,
       trackingApiEndpoint,
       snippetInitialPageView,
+      openai,
     } = {
       ...sdkDefaultSettings,
       ...settings,
@@ -140,6 +144,7 @@ export class Segment {
     this.profilesStorage = profilesStorage;
     this.trackingApiEndpoint = trackingApiEndpoint;
     this.snippetInitialPageView = snippetInitialPageView;
+    this.openai = openai;
     this._variations = [];
     this._traitsFunc = (traits) => undefined;
     this.logger = new Logger(logLevels);
@@ -227,6 +232,7 @@ export class Segment {
             enrichWithAJSNoWriteKey,
             features.ajsInjection && features.redactWritekey
           )
+          .handler(personalizeWithAI)
       : router.register("root", handleWith404);
 
     // engage incoming webhook handler

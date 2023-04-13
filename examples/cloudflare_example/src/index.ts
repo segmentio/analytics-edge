@@ -5,6 +5,8 @@ type Env = {
   PERSONAS_SPACE_ID: string;
   PERSONAS_TOKEN: string;
   Profiles: KVNamespace;
+  OPENAI_ORGANIZATION_ID: string;
+  OPENAI_API_KEY: string;
 };
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -13,28 +15,17 @@ export default {
     const segment = new Segment({
       writeKey: env.SEGMENT_WRITE_KEY,
       personasSpaceId: env.PERSONAS_SPACE_ID,
-      routePrefix: "wut",
+      routePrefix: "seg",
       personasToken: env.PERSONAS_TOKEN,
       profilesStorage: env.Profiles,
       logLevels: ["error", "warn", "info", "debug"],
-    });
-
-    segment.registerVariation("/", (audiences) => {
-      if (!audiences) {
-        return;
-      }
-      return audiences.vancouver_crew ? "/van" : "/sf";
-    });
-
-    segment.clientSideTraits((traits) => {
-      return {
-        test_trait: true,
-        another_trait: "hello",
-      };
+      openai: {
+        ORGANIZATION_ID: env.OPENAI_ORGANIZATION_ID,
+        OPENAI_API_KEY: env.OPENAI_API_KEY,
+      },
     });
 
     const resp = await segment.handleEvent(request);
-
     //@ts-ignore
     return resp;
   },

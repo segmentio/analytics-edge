@@ -107,6 +107,16 @@ export interface EdgeSDKSettings {
    *
    * */
   snippetInitialPageView?: boolean;
+
+  /**
+   * OpenAI API Key and Organization ID
+   * @example { OPENAI_API_KEY: "sk-xxxx", ORGANIZATION_ID: "org-xxxx"}
+   *
+   * */
+  openai?: {
+    OPENAI_API_KEY: string;
+    ORGANIZATION_ID: string;
+  };
 }
 
 /**
