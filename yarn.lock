@@ -1434,8 +1434,8 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": ^3.16.0
     "@segment/edge-sdk": "*"
+    "@segment/eslint-config-edge-sdk": "*"
     "@segment/tsconfig-edge-sdk": "*"
-    eslint-config-edge-sdk: "*"
     typescript: ^4.8.3
     wrangler: 2.1.4
   languageName: unknown
@@ -1446,19 +1446,41 @@ __metadata:
   resolution: "@segment/edge-sdk@workspace:packages/edge-sdk"
   dependencies:
     "@cloudflare/workers-types": ^3.16.0
+    "@segment/eslint-config-edge-sdk": "*"
+    "@segment/jest-presets": "*"
     "@segment/snippet": ^4.15.3
     "@segment/tsconfig-edge-sdk": "*"
     "@types/jest": ^29.0.3
     "@types/uuid": ^8.3.4
     eslint: ^7.32.0
-    eslint-config-edge-sdk: "*"
     jest: ^29.0.3
-    jest-presets: "*"
     tldts: ^5.7.100
     tsup: ^5.10.1
     typescript: ^4.5.3
     uuid: ^9.0.0
     worktop: ^0.8.0-next.14
+  languageName: unknown
+  linkType: soft
+
+"@segment/eslint-config-edge-sdk@*, @segment/eslint-config-edge-sdk@workspace:packages/eslint-config-edge-sdk":
+  version: 0.0.0-use.local
+  resolution: "@segment/eslint-config-edge-sdk@workspace:packages/eslint-config-edge-sdk"
+  dependencies:
+    "@typescript-eslint/eslint-plugin": ^5.49.0
+    "@typescript-eslint/parser": ^5.49.0
+    eslint: ^8.32.0
+    eslint-config-prettier: ^8.3.0
+    eslint-config-turbo: ^0.0.7
+  languageName: unknown
+  linkType: soft
+
+"@segment/jest-presets@*, @segment/jest-presets@workspace:packages/jest-presets":
+  version: 0.0.0-use.local
+  resolution: "@segment/jest-presets@workspace:packages/jest-presets"
+  dependencies:
+    jest-environment-miniflare: ^2.11.0
+    miniflare: ^2.11.0
+    ts-jest: ^29.0.1
   languageName: unknown
   linkType: soft
 
@@ -3342,18 +3364,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-edge-sdk@*, eslint-config-edge-sdk@workspace:packages/eslint-config-edge-sdk":
-  version: 0.0.0-use.local
-  resolution: "eslint-config-edge-sdk@workspace:packages/eslint-config-edge-sdk"
-  dependencies:
-    "@typescript-eslint/eslint-plugin": ^5.49.0
-    "@typescript-eslint/parser": ^5.49.0
-    eslint: ^8.32.0
-    eslint-config-prettier: ^8.3.0
-    eslint-config-turbo: ^0.0.7
-  languageName: unknown
-  linkType: soft
-
 "eslint-config-prettier@npm:^8.3.0":
   version: 8.6.0
   resolution: "eslint-config-prettier@npm:8.6.0"
@@ -4927,16 +4937,6 @@ __metadata:
   checksum: db1a8ab2cb97ca19c01b1cfa9a9c8c69a143fde833c14df1fab0766f411b1148ff0df878adea09007ac6a2085ec116ba9a996a6ad104b1e58c20adbf88eed9b2
   languageName: node
   linkType: hard
-
-"jest-presets@*, jest-presets@workspace:packages/jest-presets":
-  version: 0.0.0-use.local
-  resolution: "jest-presets@workspace:packages/jest-presets"
-  dependencies:
-    jest-environment-miniflare: ^2.11.0
-    miniflare: ^2.11.0
-    ts-jest: ^29.0.1
-  languageName: unknown
-  linkType: soft
 
 "jest-regex-util@npm:^29.4.3":
   version: 29.4.3
@@ -6535,7 +6535,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@changesets/cli": ^2.22.0
-    eslint-config-edge-sdk: "*"
+    "@segment/eslint-config-edge-sdk": "*"
     prettier: ^2.5.1
     turbo: latest
   languageName: unknown

@@ -12,23 +12,23 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --format esm,cjs --watch --dts",
-    "lint": "TIMING=1 eslint src/**/*.ts* --fix",
+    "lint": "TIMING=1 eslint src/**/*.ts*",
     "clean": "rm -rf .turbo && rm -rf dist",
     "postversion": "sh scripts/version.sh",
     "test": "jest"
   },
   "jest": {
-    "preset": "jest-presets/jest/cf"
+    "preset": "@segment/jest-presets/jest/cf"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.16.0",
+    "@segment/eslint-config-edge-sdk": "*",
+    "@segment/jest-presets": "*",
     "@segment/tsconfig-edge-sdk": "*",
     "@types/jest": "^29.0.3",
     "@types/uuid": "^8.3.4",
     "eslint": "^7.32.0",
-    "eslint-config-edge-sdk": "*",
     "jest": "^29.0.3",
-    "jest-presets": "*",
     "tsup": "^5.10.1",
     "typescript": "^4.5.3"
   },

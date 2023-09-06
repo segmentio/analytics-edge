@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.22.0",
-    "eslint-config-edge-sdk": "*",
+    "@segment/eslint-config-edge-sdk": "*",
     "prettier": "^2.5.1",
     "turbo": "latest"
   },

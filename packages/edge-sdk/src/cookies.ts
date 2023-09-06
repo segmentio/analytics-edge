@@ -118,7 +118,7 @@ export const extractIdFromPayload: HandlerFunction = async (
   response,
   context
 ) => {
-  let body: { [key: string]: any } = await request.json();
+  const body: { [key: string]: any } = await request.json();
   const newContext = { ...context };
 
   if (body.userId) {
