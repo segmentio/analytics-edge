@@ -1,5 +1,5 @@
 {
-  "name": "eslint-config-edge-sdk",
+  "name": "@segment/eslint-config-edge-sdk",
   "version": "0.0.0",
   "private": true,
   "main": "index.js",

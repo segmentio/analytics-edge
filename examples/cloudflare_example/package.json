@@ -6,8 +6,8 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.16.0",
+    "@segment/eslint-config-edge-sdk": "*",
     "@segment/tsconfig-edge-sdk": "*",
-    "eslint-config-edge-sdk": "*",
     "typescript": "^4.8.3",
     "wrangler": "2.1.4"
   },

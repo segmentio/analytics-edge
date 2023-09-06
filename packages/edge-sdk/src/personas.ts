@@ -54,7 +54,7 @@ export const handlePersonasWebhook: HandlerFunction = async (
     ];
   }
 
-  let event = (await request.json()) as PersonasWebhookPayload;
+  const event = (await request.json()) as PersonasWebhookPayload;
 
   if (event.type !== "identify") {
     context.logger.log("debug", "Ignoring incoming webhook, not an identify", {

@@ -1,4 +1,4 @@
 module.exports = {
   root: true,
-  extends: ["edge-sdk"],
+  extends: ["@segment/edge-sdk"],
 };

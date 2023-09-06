@@ -1,5 +1,5 @@
 module.exports = {
   root: true,
-  // This tells ESLint to load the config from the package `eslint-config-edge-sdk`
+  // This tells ESLint to load the config from the package `@segment/eslint-config-edge-sdk`
   extends: ["edge-sdk"],
 };
