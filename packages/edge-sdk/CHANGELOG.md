@@ -1,5 +1,12 @@
 # @segment/edge-sdk
 
+## 0.1.3
+
+### Patch Changes
+
+- 87b0337: change the visibility
+- 9ca8d34: Fix lint errors
+
 ## 0.1.2
 
 ### Patch Changes
