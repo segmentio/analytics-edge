@@ -1,6 +1,10 @@
 # Segment Edge SDK
 
-This is an official Segment Edge SDK monorepo. Versioning and package publishing is handled by [Changesets](https://github.com/changesets/changesets) and fully automated with GitHub Actions.
+This is an official Segment Edge SDK monorepo.
+
+With Segment Edge SDK, built on Cloudflare Workers, developers can collect high-quality first-party data and use Segment Edge SDK to access realtime user profiles and state, to deliver personalized app experiences without managing a ton of infrastructure. Want to know more? Check out the blog post! https://segment.com/blog/twilio-segment-edge-sdk/
+
+Versioning and package publishing is handled by [Changesets](https://github.com/changesets/changesets) and fully automated with GitHub Actions.
 
 # Using the Edge SDK?
 
