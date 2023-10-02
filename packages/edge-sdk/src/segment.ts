@@ -3,9 +3,11 @@ import { Router } from "./router";
 import {
   EdgeSDKFeatures,
   EdgeSDKSettings,
+  ProfileAPIPayload,
   SegmentTrackingAPIEndpoint,
   Storage,
   TraitsFunction,
+  UserProfile,
   VariationEvaluationFunction,
 } from "./types";
 import {
@@ -270,4 +272,45 @@ export class Segment {
   async clientSideTraits(func: TraitsFunction) {
     this._traitsFunc = func;
   }
+
+  /**
+   * Get the profile, including traits, of the user associated with the request.
+   * If the user can not be identified, or the profile can't be retrieved, this returns `undefined`.
+   * @param {Request} request - The request to identify the user from.
+   * @returns 
+   */
+  async getProfile(request: Request): Promise<UserProfile | undefined> {
+    const userId = getCookie(request, 'ajs_user_id')
+    if (!userId) return
+
+    const { profilesStorage } = this.settings
+    const profileData = await profilesStorage?.get(`uid:${userId}`)
+    if (profileData) return JSON.parse(profileData)
+    return getProfileFromSegment(this, userId)
+
+  }
+}
+
+async function getProfileFromSegment(segment: Segment, userId: string) {
+	const { personasSpaceId, personasToken, profilesStorage } = segment.settings
+	const data = await fetch(
+		`https://profiles.segment.com/v1/spaces/${personasSpaceId}/collections/users/profiles/user_id:${userId}/traits?limit=200`,
+		{
+			method: 'GET',
+			headers: {
+				'Authorization': `Basic ${btoa(`${personasToken}:`)}`
+			}
+		}
+	)
+
+	if (data.status === 200) {
+		const profilesResponse = await data.json() as ProfileAPIPayload
+		const profileData = profilesResponse?.traits
+		await profilesStorage?.put(
+			`uid:${userId}`,
+			JSON.stringify(profileData),
+			{ expirationTtl: 120 /* 2 minutes */ }
+		)
+		return profileData
+	}
 }
