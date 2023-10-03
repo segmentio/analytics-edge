@@ -1,5 +1,11 @@
 # @segment/edge-sdk
 
+## 0.2.0
+
+### Minor Changes
+
+- 7ed1219: Adds an experimental getProfile method to the segment edge sdk to retrieve profiles when the user can be identified on an incoming request.
+
 ## 0.1.3
 
 ### Patch Changes
