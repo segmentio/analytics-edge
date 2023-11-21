@@ -15,10 +15,7 @@ export interface FetchSettings {
   }
 }
 
-export async function fetchWithSettings(request: FetchParameters[0], init: FetchInit = {}, settings: FetchSettings) {
-  console.log(`Fetching "${typeof request === 'string' ? request : request.url}"`);
-  console.log(`Settings: ${JSON.stringify(settings)}`)
-  
+export async function fetchWithSettings(request: FetchParameters[0], init: FetchInit = {}, settings: FetchSettings) {  
   const [modifiedRequest, modifiedInit] = modifyAccepts(request, init);
 
   if (settings.fastly?.backend) {
