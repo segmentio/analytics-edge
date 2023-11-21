@@ -128,7 +128,7 @@ export const handleVariations: HandlerFunction = async function (
         if (originPath) {
           url.pathname = originPath;
           return [
-            new Request(url, {
+            new Request(url.toString(), {
               method: request.method,
               headers: request.headers,
               body: request.body,

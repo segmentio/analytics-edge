@@ -88,6 +88,8 @@ export class Segment {
   private profilesStorage?: Storage;
   private trackingApiEndpoint: SegmentTrackingAPIEndpoint;
   private snippetInitialPageView: boolean;
+  private fastlySettings: EdgeSDKSettings['fastly'];
+  private experimental: EdgeSDKSettings['experimental'];
 
   get settings(): EdgeSDKSettings {
     return {
@@ -101,6 +103,8 @@ export class Segment {
       profilesStorage: this.profilesStorage,
       trackingApiEndpoint: this.trackingApiEndpoint,
       snippetInitialPageView: this.snippetInitialPageView,
+      fastly: this.fastlySettings,
+      experimental: this.experimental
     };
   }
 
@@ -133,6 +137,8 @@ export class Segment {
       profilesStorage,
       trackingApiEndpoint,
       snippetInitialPageView,
+      fastly,
+      experimental
     } = {
       ...sdkDefaultSettings,
       ...settings,
@@ -147,6 +153,8 @@ export class Segment {
     this.profilesStorage = profilesStorage;
     this.trackingApiEndpoint = trackingApiEndpoint;
     this.snippetInitialPageView = snippetInitialPageView;
+    this.fastlySettings = fastly;
+    this.experimental = experimental;
     this._variations = [];
     this._traitsFunc = (traits) => undefined;
     this.logger = new Logger(logLevels);

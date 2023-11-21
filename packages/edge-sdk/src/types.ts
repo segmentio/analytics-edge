@@ -107,6 +107,26 @@ export interface EdgeSDKSettings {
    *
    * */
   snippetInitialPageView?: boolean;
+  /**
+   * Configuration specific to the edge sdk when ran on fastly compute.
+   */
+  fastly?: {
+    /**
+     * The name of your Segment CDN origin as configured in origin hosts.
+     */
+    segmentCdnBackend?: string;
+    /**
+     * The name of your Segment tracking API origin as configured in origin hosts.
+     */
+    segmentTrackingAPIBackend?: string;
+    /**
+     * The name of your website's origin as configured in origin hosts.
+     */
+    websiteOriginBackend?: string;
+  }
+  experimental?: {
+    protocol?: 'http' | 'https'
+  }
 }
 
 /**

@@ -1,5 +1,6 @@
 import { HandlerFunction } from "./types";
 import { version } from "./generated/version";
+import { fetchWithSettings } from "./fetchWithContext";
 
 export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
@@ -47,9 +48,10 @@ export const handleTAPI: HandlerFunction = async (
   const parts = url.pathname.split("/");
   const method = parts.pop();
 
-  const resp = await fetch(
+  const resp = await fetchWithSettings(
     `${context.settings.trackingApiEndpoint}/${method}`,
-    request
+    request,
+    {fastly: { backend: context.settings.fastly?.segmentTrackingAPIBackend }}
   );
 
   return [request, resp, context];
