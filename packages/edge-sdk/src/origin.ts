@@ -1,11 +1,11 @@
-import { fetchWithSettings } from "./fetchWithContext";
+import { fetchWithSettings } from "./fetchWithSettings";
 import { HandlerFunction } from "./types";
 
 export const handleOrigin: HandlerFunction = async (request, response, ctx) => {
   if (response && response.status === 200) {
     return [request, response, ctx];
   } else {
-    const resp = await fetchWithSettings(request, undefined, {fastly: { backend: ctx.settings.fastly?.websiteOriginBackend}});
+    const resp = await fetchWithSettings(request, undefined, { fastly: { backend: ctx.settings.fastly?.websiteOriginBackend } });
     return [request, resp, ctx];
   }
 };
@@ -24,7 +24,7 @@ export const handleOriginWithEarlyExit: HandlerFunction = async (
     // experiment setup on the route, keep going through the pipeline
     return [request, response, ctx];
   } else {
-    const resp = await fetchWithSettings(request, undefined, {fastly: { backend: ctx.settings.fastly?.websiteOriginBackend}});
+    const resp = await fetchWithSettings(request, undefined, { fastly: { backend: ctx.settings.fastly?.websiteOriginBackend } });
     if (
       resp.status === 200 &&
       resp.headers.get("content-type")?.startsWith("text/html")

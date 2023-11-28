@@ -13,7 +13,10 @@ public/dist
 .turbo
 wrangler.toml
 **/coverage/**
+.wrangler
+bin/
 
+**/fastly/**/pkg/
 
 # ignore all .vscode folders unless they're in the root directory
 .vscode

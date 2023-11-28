@@ -1,4 +1,4 @@
-import { fetchWithSettings } from "./fetchWithContext";
+import { fetchWithSettings } from "./fetchWithSettings";
 import { getReplacementStream } from "./getReplacementStream";
 import { HandlerFunction } from "./types";
 
@@ -8,7 +8,7 @@ const DEFAULT_PROTOCOL = 'https';
 export const handleAJS: HandlerFunction = async (request, response, ctx) => {
   const url = `${ctx.settings.baseSegmentCDN}/analytics.js/v1/${ctx.settings.writeKey}/analytics.min.js`;
 
-  const resp = await fetchWithSettings(url, undefined, {fastly: { backend: ctx.settings.fastly?.segmentCdnBackend}})
+  const resp = await fetchWithSettings(url, undefined, { fastly: { backend: ctx.settings.fastly?.segmentCdnBackend } })
   return [request, resp, ctx];
 };
 
@@ -19,7 +19,7 @@ export const handleSettings: HandlerFunction = async (
   ctx
 ) => {
   const url = `${ctx.settings.baseSegmentCDN}/v1/projects/${ctx.settings.writeKey}/settings`;
-  const resp = await fetchWithSettings(url, undefined, {fastly: { backend: ctx.settings.fastly?.segmentCdnBackend}})
+  const resp = await fetchWithSettings(url, undefined, { fastly: { backend: ctx.settings.fastly?.segmentCdnBackend } })
   return [request, resp, ctx];
 };
 
@@ -32,7 +32,7 @@ export const handleBundles: HandlerFunction = async (
   const url = new URL(request.url);
   const path = url.pathname.replace(`/${ctx.settings.routePrefix}/`, "/");
   const target = `${ctx.settings.baseSegmentCDN}${path}`;
-  const resp = await fetchWithSettings(target, undefined, {fastly: { backend: ctx.settings.fastly?.segmentCdnBackend}})
+  const resp = await fetchWithSettings(target, undefined, { fastly: { backend: ctx.settings.fastly?.segmentCdnBackend } })
   return [request, resp, ctx];
 };
 
@@ -49,18 +49,16 @@ export const appendIdCallsToAJS: HandlerFunction = async (
 
   const { userId, anonymousId, clientSideTraits } = ctx;
 
-  const anonymousCall = `${
-    anonymousId ? `analytics.setAnonymousId("${anonymousId}");` : ""
-  }`;
+  const anonymousCall = `${anonymousId ? `analytics.setAnonymousId("${anonymousId}");` : ""
+    }`;
 
   // TODO: Switch to non-tracking call
-  const idCall = `${
-    userId && clientSideTraits
+  const idCall = `${userId && clientSideTraits
       ? `analytics.identify("${userId}", ${JSON.stringify(clientSideTraits)});`
       : userId
-      ? `analytics.identify("${userId}");`
-      : ""
-  }`;
+        ? `analytics.identify("${userId}");`
+        : ""
+    }`;
 
   const resetHandler = `analytics.on('reset', function() { fetch('${ctx.settings.experimental?.protocol ?? DEFAULT_PROTOCOL}://${ctx.host}/${ctx.settings.routePrefix}/reset', {credentials:"include"}) });`;
 
@@ -132,7 +130,7 @@ export const redactWritekey: HandlerFunction = async (
     }));
     modifiedResponse = new Response(modifiedContent, response);
   }
-  
+
   return [request, modifiedResponse, ctx];
 };
 
@@ -171,7 +169,7 @@ export const configureApiHost: HandlerFunction = async (
   const host = ctx.host;
   // rather than send to api.segment.io, configure analytics to proxy event calls through worker.
   const apiHost = `${host}/${ctx.settings.routePrefix}/evs`;
-  
+
   let modifiedResponse = response;
   if (response.body && !response.bodyUsed) {
     const modifiedContent = response.body.pipeThrough(getReplacementStream({

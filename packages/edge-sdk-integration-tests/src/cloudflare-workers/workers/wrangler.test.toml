@@ -1,0 +1,6 @@
+name = "test-worker"
+compatibility_date = "2022-11-30"
+
+[dev]
+# Mock Origin server
+host = "localhost:3001"
