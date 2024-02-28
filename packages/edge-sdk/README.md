@@ -10,6 +10,8 @@ The Segment Edge SDK – built on Cloudflare Workers – solves for both. With S
 
 ## Getting Started
 
+**Alpha Release Notice:** Edge SDK for Cloudflare Workers is in its alpha phase, meaning changes and improvements are ongoing. Your feedback is invaluable in shaping its evolution. Please be aware that features and functionality might evolve as we progress.
+
 Edge SDK requires you to setup a Cloudflare Worker. You can choose one of the following two methods to setup your worker:
 
 ### Running as a full reverse proxy on your main domain
