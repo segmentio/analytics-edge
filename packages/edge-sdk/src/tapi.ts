@@ -1,5 +1,6 @@
 import { HandlerFunction } from "./types";
 import { version } from "./generated/version";
+import { fetchWithSettings } from "./fetchWithSettings";
 
 export const includeEdgeTraitsInContext: HandlerFunction = async (
   request,
@@ -10,22 +11,21 @@ export const includeEdgeTraitsInContext: HandlerFunction = async (
   const parts = url.pathname.split("/");
   const method = parts.pop();
   const body: { [key: string]: any } = await request.json();
-  if (method && ["i", "t", "p"].includes(method) && request.cf) {
-    body.context = {
-      ...body.context,
-      edge: {
-        region: request.cf.region,
-        regionCode: request.cf.regionCode,
-        city: request.cf.city,
-        country: request.cf.country,
-        continent: request.cf.continent,
-        postalCode: request.cf.postalCode,
-        latitude: request.cf.latitude,
-        longitude: request.cf.longitude,
-        timezone: request.cf.timezone,
-      },
-    };
+  if (method && ["i", "t", "p"].includes(method)) {
+    const edge = request.cf ? {
+      region: request.cf.region,
+          regionCode: request.cf.regionCode,
+          city: request.cf.city,
+          country: request.cf.country,
+          continent: request.cf.continent,
+          postalCode: request.cf.postalCode,
+          latitude: request.cf.latitude,
+          longitude: request.cf.longitude,
+          timezone: request.cf.timezone
+    } : {};
+    body.context = {...body.context, edge: {...edge}}
   }
+
   return [
     new Request(request.url, {
       body: JSON.stringify(body),
@@ -46,10 +46,17 @@ export const handleTAPI: HandlerFunction = async (
   const url = new URL(request.url);
   const parts = url.pathname.split("/");
   const method = parts.pop();
+  const body = await request.text();
 
-  const resp = await fetch(
+  const resp = await fetchWithSettings(
     `${context.settings.trackingApiEndpoint}/${method}`,
-    request
+    {
+      headers: request.headers,
+      cf: request.cf as RequestInitCfProperties,
+      method: request.method,
+      body: body
+    },
+    {fastly: { backend: context.settings.fastly?.segmentTrackingAPIBackend }}
   );
 
   return [request, resp, context];
@@ -86,7 +93,6 @@ export const injectWritekey: HandlerFunction = async (
 ) => {
   // grab body and method from request
   const body: { [key: string]: any } = await request.json();
-
   // discard the redacted writekey and include the real one in the headers
   const headers = new Headers(request.headers);
   headers.append(

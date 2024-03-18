@@ -87,9 +87,7 @@ describe("asset proxy", () => {
       { ...mockContext, host: "sushi-shop.com" }
     );
     expect(resp?.status).toBe(200);
-    expect(await resp?.text()).toBe(`
-    analytics._cdn = "https://sushi-shop.com/seg";
-    The amazing AJS minified code!`);
+    expect(await resp?.text()).toBe(`analytics._cdn = "https://sushi-shop.com/seg";The amazing AJS minified code!`);
   });
 
   it("Enrich with anonymousId call", async () => {
@@ -106,8 +104,7 @@ describe("asset proxy", () => {
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
     analytics.setAnonymousId("👻");
-    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });
-    The amazing AJS minified code!`);
+    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });The amazing AJS minified code!`);
   });
 
   it("Enrich with user id", async () => {
@@ -124,8 +121,7 @@ describe("asset proxy", () => {
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
     analytics.identify("👋");
-    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });
-    The amazing AJS minified code!`);
+    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });The amazing AJS minified code!`);
   });
 
   it("Enrich with client-side traits", async () => {
@@ -145,8 +141,7 @@ describe("asset proxy", () => {
     expect(resp?.status).toBe(200);
     expect(await resp?.text()).toBe(`
     analytics.identify("👋", {"locale":"en"});
-    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });
-    The amazing AJS minified code!`);
+    analytics.on('reset', function() { fetch('https://sushi-shop.com/seg/reset', {credentials:"include"}) });The amazing AJS minified code!`);
   });
 
   it("Redacts the writekey in response", async () => {

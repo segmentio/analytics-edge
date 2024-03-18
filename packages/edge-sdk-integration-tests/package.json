@@ -1,0 +1,22 @@
+{
+  "name": "@segment/edge-sdk-integration-tests",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@segment/edge-sdk": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231002.0",
+    "@fastly/js-compute": "^3.7.3",
+    "@segment/eslint-config-edge-sdk": "*",
+    "@types/jest": "^29.5.9",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "wrangler": "^3.17.0"
+  }
+}

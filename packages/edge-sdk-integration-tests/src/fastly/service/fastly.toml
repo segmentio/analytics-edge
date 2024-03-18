@@ -1,0 +1,14 @@
+language = "javascript"
+manifest_version = 3
+name = "test-fastly"
+
+[local_server]
+  [local_server.backends.origin]
+    url = "http://localhost:3001"
+  [local_server.backends.segment-cdn]
+    url = "http://localhost:3002"
+  [local_server.backends.tracking-api]
+    url = "http://localhost:3003"
+
+[scripts]
+  build = "npx js-compute-runtime ./src/fastly/service/index.js ./src/fastly/service/bin/main.wasm"

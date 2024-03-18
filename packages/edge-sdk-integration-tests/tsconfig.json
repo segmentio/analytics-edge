@@ -1,0 +1,11 @@
+{
+  "extends": "@segment/tsconfig-edge-sdk/base.json",
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules"
+  ],
+}
